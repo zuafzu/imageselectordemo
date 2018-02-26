@@ -51,10 +51,12 @@ public class CyfRecyclerView extends RecyclerView {
 
     public void setClick(boolean click) {
         isClick = click;
+        grapeGridAdapter.setClick(click);
     }
 
     public void setOnItemClickListener(OnClickListener listener) {
         this.listener = listener;
+        grapeGridAdapter.setListener(listener);
     }
 
     /**
@@ -83,7 +85,7 @@ public class CyfRecyclerView extends RecyclerView {
      */
     public void setWatchImg(Context context, final List<String> list, final int type) {
         mList = list;
-        grapeGridAdapter = new PostArticleImgAdapter(context, mList);
+        grapeGridAdapter = new PostArticleImgAdapter(context, mList, type, isClick);
         initRecyclerView();
     }
 

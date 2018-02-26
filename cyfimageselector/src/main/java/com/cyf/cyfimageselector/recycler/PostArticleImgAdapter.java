@@ -31,15 +31,17 @@ public class PostArticleImgAdapter extends RecyclerView.Adapter<PostArticleImgAd
     private int num;
     private PhotoConfigure photoConfigure;
     private View.OnClickListener listener;
+    private boolean isClick = true;
 
-    private int type = 0;//0查看，1编辑
-
-    public View.OnClickListener getListener() {
-        return listener;
-    }
+    private int type = 0;// 0带保存按钮，3不带保存按钮
+    private int mType = 0;//0查看，1编辑
 
     public void setListener(View.OnClickListener listener) {
         this.listener = listener;
+    }
+
+    public void setClick(boolean click) {
+        isClick = click;
     }
 
     public PostArticleImgAdapter(Context context, List<String> datas, boolean isdelete, int num, PhotoConfigure photoConfigure) {
@@ -61,14 +63,15 @@ public class PostArticleImgAdapter extends RecyclerView.Adapter<PostArticleImgAd
         if (this.mDatas.size() < num) {
             this.mDatas.add("add");
         }
-        type = 1;
+        mType = 1;
     }
 
-    public PostArticleImgAdapter(Context context, List<String> datas) {
+    public PostArticleImgAdapter(Context context, List<String> datas, int type,boolean isClick) {
         this.mDatas = datas;
         this.mContext = context;
         this.mLayoutInflater = LayoutInflater.from(context);
-        type = 0;
+        this.type = type;
+        mType = 0;
     }
 
     @Override
@@ -80,21 +83,22 @@ public class PostArticleImgAdapter extends RecyclerView.Adapter<PostArticleImgAd
     public void onBindViewHolder(final MyViewHolder holder, final int position) {
         holder.view_top.setVisibility(View.GONE);
         holder.photo_wall_item_cb.setVisibility(View.GONE);
-        if (type == 0) {
+        if (mType == 0) {
             SDCardImageLoader.setImgThumbnail(mContext, mDatas.get(position), ((ImageView) holder.photo_wall_item_photo));
             holder.photo_wall_item_photo.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if (listener != null) {
-                        listener.onClick(holder.photo_wall_item_photo);
-                    } else {
-                        // 这里的type不对
-                        PhotoPreviewActivity.openPhotoPreview((Activity) mContext, position, mDatas.size(), type, (ArrayList<String>) mDatas, new PhotoPreviewActivity.OnHanlderResultCallback() {
-                            @Override
-                            public void onHanlderSuccess(List<String> resultList) {
+                    if(isClick){
+                        if (listener != null) {
+                            listener.onClick(holder.photo_wall_item_photo);
+                        } else {
+                            PhotoPreviewActivity.openPhotoPreview((Activity) mContext, position, mDatas.size(), type, (ArrayList<String>) mDatas, new PhotoPreviewActivity.OnHanlderResultCallback() {
+                                @Override
+                                public void onHanlderSuccess(List<String> resultList) {
 
-                            }
-                        });
+                                }
+                            });
+                        }
                     }
                 }
             });
