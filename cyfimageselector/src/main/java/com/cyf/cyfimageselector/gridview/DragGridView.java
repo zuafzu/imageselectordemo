@@ -197,7 +197,6 @@ public class DragGridView extends GridView {
                                         startAnimation(getChildAt(i), i, i - 1, i == dragCurrentPosition);
                                     }
                                 } else {
-
                                     for (int i = dragOriginPosition - 1; i >= dragCurrentPosition; i--) {
                                         startAnimation(getChildAt(i), i, i + 1, i == dragCurrentPosition);
                                     }
@@ -312,7 +311,6 @@ public class DragGridView extends GridView {
 
             }
         });
-
     }
 
 

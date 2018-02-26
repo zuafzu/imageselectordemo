@@ -12,8 +12,6 @@ import com.cyf.cyfimageselector.R;
 
 import java.io.IOException;
 
-import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
-
 /**
  * 从SDCard异步加载图片
  *
@@ -103,8 +101,8 @@ public class SDCardImageLoader {
 //                    thumbnail(0.1f).into(piv);
 //        }
         GlideApp.with(context).load(path).
-                apply(new RequestOptions().error(R.mipmap.ic_default_img).fitCenter()).
-                thumbnail(0.1f).transition(withCrossFade()).into(piv);
+                apply(new RequestOptions().error(R.mipmap.ic_default_img).fitCenter().encodeQuality(50)).
+                thumbnail(0.1f).dontAnimate().into(piv);
     }
 
 }

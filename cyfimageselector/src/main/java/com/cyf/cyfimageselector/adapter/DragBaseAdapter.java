@@ -17,7 +17,7 @@ public abstract class DragBaseAdapter extends BaseAdapter {
 
     private List<String> list;
     private Context context;
-    private int num = 0;
+    private int num = -1;
 
     protected abstract int getLayoutId();
 
@@ -28,16 +28,18 @@ public abstract class DragBaseAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        if (list.size() > 0) {
-            for (int i = 0; i < list.size(); i++) {
-                if (list.get(i).equals("add")) {
-                    list.remove(i);
-                    break;
+        if (num != -1) {
+            if (list.size() > 0) {
+                for (int i = 0; i < list.size(); i++) {
+                    if (list.get(i).equals("add")) {
+                        list.remove(i);
+                        break;
+                    }
                 }
             }
-        }
-        if (this.list.size() < num) {
-            this.list.add("add");
+            if (this.list.size() < num) {
+                this.list.add("add");
+            }
         }
         return list.size();
     }
@@ -59,6 +61,11 @@ public abstract class DragBaseAdapter extends BaseAdapter {
         this.num = num;
     }
 
+    public DragBaseAdapter(Context context, List<String> list) {
+        this.context = context;
+        this.list = list;
+    }
+
     @Override
     public View getView(int i, View view, ViewGroup viewGroup) {
         MyNewAdapter.ViewHolder viewHolder = null;
@@ -72,7 +79,9 @@ public abstract class DragBaseAdapter extends BaseAdapter {
         }
         // 解决图片错位问题，GridView重复调用poistion=0的getView方法，ListView会全部重复调用
         if (viewGroup.getChildCount() == i) {
-            setViewValue(viewHolder, i);
+            //if (!list.get(i).equals(view.getTag(R.string.app_name))) {
+                setViewValue(viewHolder, i);
+            //}
         }
         return view;
     }

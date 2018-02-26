@@ -20,6 +20,8 @@ public class MyNewAdapter extends DragBaseAdapter {
     private List<String> list;
     private boolean isdelete;
 
+    private int type = 0;//0查看，1编辑
+
     public MyNewAdapter(Context context, List<String> list, boolean isdelete, int num) {
         super(context, list, num);
         this.context = context;
@@ -37,6 +39,14 @@ public class MyNewAdapter extends DragBaseAdapter {
         if (this.list.size() < num) {
             this.list.add("add");
         }
+        type = 1;
+    }
+
+    public MyNewAdapter(Context context, List<String> list) {
+        super(context, list);
+        this.context = context;
+        this.list = list;
+        type = 0;
     }
 
     @Override
@@ -53,35 +63,38 @@ public class MyNewAdapter extends DragBaseAdapter {
     }
 
     @Override
-    protected void setViewValue(final ViewHolder holder, int position) {
-        final int a = position;
+    protected void setViewValue(final ViewHolder holder, final int position) {
         holder.getView(R.id.view_top).setVisibility(View.GONE);
         holder.getView(R.id.photo_wall_item_cb).setVisibility(View.GONE);
-        if (list.get(position).equals("add")) {
-            ((View) holder.getView(R.id.photo_wall_item_photo).getParent()).setTag(R.string.app_name, "add");
-            holder.getView(R.id.btn_delete).setVisibility(View.GONE);
-            ((ImageView) holder.getView(R.id.photo_wall_item_photo)).setImageResource(R.mipmap.ic_add_image);
+        if (type == 0) {
+            setImg(holder, position);
         } else {
-            ((View) holder.getView(R.id.photo_wall_item_photo).getParent()).setTag(R.string.app_name, list.get(position));
-            if (isdelete) {
-                holder.getView(R.id.btn_delete).setVisibility(View.VISIBLE);
-                holder.getView(R.id.btn_delete).setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        list.remove(a);
-                        // notifyDataSetInvalidated();
-                        notifyDataSetChanged();
-                    }
-                });
-            } else {
+            if (list.get(position).equals("add")) {
+                ((View) holder.getView(R.id.photo_wall_item_photo).getParent()).setTag(R.string.app_name, "add");
                 holder.getView(R.id.btn_delete).setVisibility(View.GONE);
-            }
-            if (holder.getView(R.id.photo_wall_item_photo).getTag(R.string.app_name) != list.get(position)) {
-                holder.getView(R.id.photo_wall_item_photo).setTag(R.string.app_name, list.get(position));
-                ((ImageView) holder.getView(R.id.photo_wall_item_photo)).setImageResource(android.R.color.white);
-                SDCardImageLoader.setImgThumbnail(context, list.get(position), ((ImageView) holder.getView(R.id.photo_wall_item_photo)));
+                ((ImageView) holder.getView(R.id.photo_wall_item_photo)).setImageResource(R.mipmap.ic_add_image);
+            } else {
+                if (isdelete) {
+                    holder.getView(R.id.btn_delete).setVisibility(View.VISIBLE);
+                    holder.getView(R.id.btn_delete).setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            list.remove(position);
+                            // notifyDataSetInvalidated();
+                            notifyDataSetChanged();
+                        }
+                    });
+                } else {
+                    holder.getView(R.id.btn_delete).setVisibility(View.GONE);
+                }
+                setImg(holder, position);
             }
         }
+    }
+
+    private void setImg(final ViewHolder holder, final int position) {
+        ((View) holder.getView(R.id.photo_wall_item_photo).getParent()).setTag(R.string.app_name, list.get(position));
+        SDCardImageLoader.setImgThumbnail(context, list.get(position), ((ImageView) holder.getView(R.id.photo_wall_item_photo)));
     }
 
     public static class ViewHolder {

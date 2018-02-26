@@ -9,7 +9,6 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.widget.AdapterView;
 
-import com.cyf.cyfimageselector.adapter.GrapeGridAdapter0;
 import com.cyf.cyfimageselector.adapter.MyNewAdapter;
 import com.cyf.cyfimageselector.model.PhotoConfigure;
 import com.cyf.cyfimageselector.ui.PhotoPreviewActivity;
@@ -24,9 +23,7 @@ import java.util.List;
 public class GrapeGridview extends DragGridView {
 
     private List<String> mList = new ArrayList<>();
-    // private GrapeGridAdapter2 grapeGridAdapter2;
-    private GrapeGridAdapter0 grapeGridAdapter0;
-    private MyNewAdapter grapeGridAdapter2;
+    private MyNewAdapter grapeGridAdapter;
 
     private boolean isClick = true;//缩略图是否可以点击（仅限查看时有效,初始化之前调用）
 
@@ -84,8 +81,9 @@ public class GrapeGridview extends DragGridView {
      */
     public void setWatchImg(Context context, final List<String> list, final int type) {
         mList = list;
-        grapeGridAdapter0 = new GrapeGridAdapter0(context, list);
-        setAdapter(grapeGridAdapter0);
+        // grapeGridAdapter0 = new GrapeGridAdapter0(context, list);
+        grapeGridAdapter = new MyNewAdapter(context, list);
+        setAdapter(grapeGridAdapter);
         if (isClick) {
             setOnItemClickListener(new OnItemClickListener() {
                 @Override
@@ -99,7 +97,6 @@ public class GrapeGridview extends DragGridView {
                 }
             });
         }
-        //this.setCanDrag(false);
     }
 
     /**
@@ -112,14 +109,13 @@ public class GrapeGridview extends DragGridView {
      */
     public void setEditImg(Context context, final List<String> list, boolean isDelete, final PhotoConfigure photoConfigure) {
         mList = list;
-//        photoConfigure.setSingle(false);
         photoConfigure.setList((ArrayList<String>) list);
         if (photoConfigure.isSingle()) {
             photoConfigure.setNum(1);
         }
         //grapeGridAdapter2 = new GrapeGridAdapter2(context, list, isDelete, photoConfigure.getNum());
-        grapeGridAdapter2 = new MyNewAdapter(context, list, isDelete, photoConfigure.getNum());
-        setAdapter(grapeGridAdapter2);
+        grapeGridAdapter = new MyNewAdapter(context, list, isDelete, photoConfigure.getNum());
+        setAdapter(grapeGridAdapter);
         setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
@@ -135,7 +131,7 @@ public class GrapeGridview extends DragGridView {
                         public void onHanlderSuccess(List<String> resultList) {
                             list.clear();
                             list.addAll(resultList);
-                            grapeGridAdapter2.notifyDataSetChanged();
+                            grapeGridAdapter.notifyDataSetChanged();
                         }
                     });
                 } else {
@@ -150,39 +146,13 @@ public class GrapeGridview extends DragGridView {
                         public void onHanlderSuccess(List<String> resultList) {
                             list.clear();
                             list.addAll(resultList);
-                            grapeGridAdapter2.notifyDataSetChanged();
+                            grapeGridAdapter.notifyDataSetChanged();
                         }
                     });
                 }
             }
         });
         this.setSelector(new ColorDrawable(Color.TRANSPARENT));
-//        this.setCanDrag(false);
-//        this.setOnItemChangeListener(new XGridView.OnItemChangeListener() {
-//            @Override
-//            public void onChange(int from, int to) {
-//                if (from < mList.size() && to < mList.size() && from >= 0 && to >= 0) {
-//                    grapeGridAdapter2.setmPoistion(to);
-//
-//                    String temp = mList.get(from);
-//                    //直接交互
-//                    //Collections.swap(dataSourceList,from,to);
-//
-//                    //非直接交互 这里的处理需要注意下 排序交换
-//                    if (from < to) {
-//                        for (int i = from; i < to; i++) {
-//                            Collections.swap(mList, i, i + 1);
-//                        }
-//                    } else if (from > to) {
-//                        for (int i = from; i > to; i--) {
-//                            Collections.swap(mList, i, i - 1);
-//                        }
-//                    }
-//                    mList.set(to, temp);
-//                }
-//                grapeGridAdapter2.notifyDataSetChanged();
-//            }
-//        });
     }
 
     /**
@@ -212,10 +182,6 @@ public class GrapeGridview extends DragGridView {
             }
         }
         return mList;
-    }
-
-    public void resetPosition(){
-        // grapeGridAdapter2.setmPoistion(-1);
     }
 
 }
