@@ -66,7 +66,7 @@ public class PostArticleImgAdapter extends RecyclerView.Adapter<PostArticleImgAd
         mType = 1;
     }
 
-    public PostArticleImgAdapter(Context context, List<String> datas, int type,boolean isClick) {
+    public PostArticleImgAdapter(Context context, List<String> datas, int type, boolean isClick) {
         this.mDatas = datas;
         this.mContext = context;
         this.mLayoutInflater = LayoutInflater.from(context);
@@ -84,15 +84,15 @@ public class PostArticleImgAdapter extends RecyclerView.Adapter<PostArticleImgAd
         holder.view_top.setVisibility(View.GONE);
         holder.photo_wall_item_cb.setVisibility(View.GONE);
         if (mType == 0) {
-            SDCardImageLoader.setImgThumbnail(mContext, mDatas.get(position), ((ImageView) holder.photo_wall_item_photo));
+            SDCardImageLoader.setImgThumbnail(mContext, mDatas.get(holder.getAdapterPosition()), ((ImageView) holder.photo_wall_item_photo));
             holder.photo_wall_item_photo.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if(isClick){
+                    if (isClick) {
                         if (listener != null) {
                             listener.onClick(holder.photo_wall_item_photo);
                         } else {
-                            PhotoPreviewActivity.openPhotoPreview((Activity) mContext, position, mDatas.size(), type, (ArrayList<String>) mDatas, new PhotoPreviewActivity.OnHanlderResultCallback() {
+                            PhotoPreviewActivity.openPhotoPreview((Activity) mContext, holder.getAdapterPosition(), mDatas.size(), type, (ArrayList<String>) mDatas, new PhotoPreviewActivity.OnHanlderResultCallback() {
                                 @Override
                                 public void onHanlderSuccess(List<String> resultList) {
 
@@ -103,7 +103,7 @@ public class PostArticleImgAdapter extends RecyclerView.Adapter<PostArticleImgAd
                 }
             });
         } else {
-            if (mDatas.get(position).equals("add")) {
+            if (mDatas.get(holder.getAdapterPosition()).equals("add")) {
                 ((View) holder.photo_wall_item_photo.getParent()).setTag(R.string.app_name, "add");
                 holder.btn_delete.setVisibility(View.GONE);
                 ((ImageView) holder.photo_wall_item_photo).setImageResource(R.mipmap.ic_add_image);
@@ -113,20 +113,20 @@ public class PostArticleImgAdapter extends RecyclerView.Adapter<PostArticleImgAd
                     holder.btn_delete.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            mDatas.remove(position);
+                            mDatas.remove(holder.getAdapterPosition());
                             setmList();
-                            notifyDataSetChanged();
+                            notifyItemRemoved(holder.getAdapterPosition());
                         }
                     });
                 } else {
                     holder.btn_delete.setVisibility(View.GONE);
                 }
-                SDCardImageLoader.setImgThumbnail(mContext, mDatas.get(position), ((ImageView) holder.photo_wall_item_photo));
+                SDCardImageLoader.setImgThumbnail(mContext, mDatas.get(holder.getAdapterPosition()), ((ImageView) holder.photo_wall_item_photo));
             }
             holder.photo_wall_item_photo.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if (mDatas.get(position).equals("add")) {
+                    if (mDatas.size() == 0 || mDatas.get(holder.getAdapterPosition()).equals("add")) {
                         for (int j = 0; j < mDatas.size(); j++) {
                             if (mDatas.get(j).equals("add")) {
                                 mDatas.remove(j);
@@ -149,7 +149,7 @@ public class PostArticleImgAdapter extends RecyclerView.Adapter<PostArticleImgAd
                                 break;
                             }
                         }
-                        PhotoPreviewActivity.openPhotoPreview((Activity) mContext, position, num, 2, (ArrayList<String>) mDatas, new PhotoPreviewActivity.OnHanlderResultCallback() {
+                        PhotoPreviewActivity.openPhotoPreview((Activity) mContext, holder.getAdapterPosition(), num, 2, (ArrayList<String>) mDatas, new PhotoPreviewActivity.OnHanlderResultCallback() {
                             @Override
                             public void onHanlderSuccess(List<String> resultList) {
                                 mDatas.clear();
@@ -170,7 +170,7 @@ public class PostArticleImgAdapter extends RecyclerView.Adapter<PostArticleImgAd
     }
 
 
-    private void setmList() {
+    public void setmList() {
         if (mDatas.size() > 0) {
             for (int i = 0; i < mDatas.size(); i++) {
                 if (mDatas.get(i).equals("add")) {

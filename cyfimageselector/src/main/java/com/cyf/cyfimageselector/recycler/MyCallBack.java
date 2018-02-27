@@ -6,6 +6,8 @@ import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
 
+import com.cyf.cyfimageselector.R;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -20,6 +22,12 @@ public class MyCallBack extends ItemTouchHelper.Callback {
     private PostArticleImgAdapter adapter;
     private List<String> originImages;//图片没有经过处理，这里传这个进来是为了使原图片的顺序与拖拽顺序保持一致
     private boolean up;//手指抬起标记位
+
+    private boolean isCanDelete = false;
+
+    public void setCanDelete(boolean canDelete) {
+        isCanDelete = canDelete;
+    }
 
     public MyCallBack(PostArticleImgAdapter adapter, List<String> originImages) {
         this.adapter = adapter;
@@ -55,8 +63,14 @@ public class MyCallBack extends ItemTouchHelper.Callback {
     public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
         int fromPosition = viewHolder.getAdapterPosition();//得到item原来的position
         int toPosition = target.getAdapterPosition();//得到目标position
-        if (toPosition == originImages.size() - 1 || originImages.size() - 1 == fromPosition) {
-            return true;
+//        if (toPosition == originImages.size() - 1 || originImages.size() - 1 == fromPosition) {
+//            return true;
+//        }
+        originImages = ((CyfRecyclerView) recyclerView).getSelectList2();
+        if (originImages.get(originImages.size() - 1).equals("add")) {
+            if (toPosition == originImages.size() - 1) {
+                return true;
+            }
         }
         if (fromPosition < toPosition) {
             for (int i = fromPosition; i < toPosition; i++) {
@@ -99,6 +113,7 @@ public class MyCallBack extends ItemTouchHelper.Callback {
     @Override
     public void clearView(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
         super.clearView(recyclerView, viewHolder);
+        viewHolder.itemView.setAlpha(1f);
         adapter.notifyDataSetChanged();
         initData();
         if (dragListener != null) {
@@ -133,25 +148,32 @@ public class MyCallBack extends ItemTouchHelper.Callback {
         if (null == dragListener) {
             return;
         }
-
-//        if (dY >= (recyclerView.getHeight()
-//                - viewHolder.itemView.getBottom()//item底部距离recyclerView顶部高度
-//                - 45)) {//拖到删除处
-//            dragListener.deleteState(true);
-//            if (up) {//在删除处放手，则删除item
-//                viewHolder.itemView.setVisibility(View.INVISIBLE);//先设置不可见，如果不设置的话，会看到viewHolder返回到原位置时才消失，因为remove会在viewHolder动画执行完成后才将viewHolder删除
-//                originImages.remove(viewHolder.getAdapterPosition());
-//                adapter.notifyItemRemoved(viewHolder.getAdapterPosition());
-//                initData();
-//                return;
-//            }
-//        } else {
-        // 没有到删除处
-        if (View.INVISIBLE == viewHolder.itemView.getVisibility()) {//如果viewHolder不可见，则表示用户放手，重置删除区域状态
-            dragListener.dragState(false);
+        if (isCanDelete) {
+            if (dY >= (recyclerView.getHeight()
+                    - viewHolder.itemView.getBottom()//item底部距离recyclerView顶部高度
+                    - recyclerView.getContext().getResources().getDimension(R.dimen.delete_height))) {//拖到删除处
+                dragListener.deleteState(true);
+                if (up) {//在删除处放手，则删除item
+                    viewHolder.itemView.setVisibility(View.INVISIBLE);//先设置不可见，如果不设置的话，会看到viewHolder返回到原位置时才消失，因为remove会在viewHolder动画执行完成后才将viewHolder删除
+                    originImages.remove(viewHolder.getAdapterPosition());
+                    adapter.setmList();
+                    adapter.notifyItemRemoved(viewHolder.getAdapterPosition());
+                    initData();
+                    return;
+                }
+            } else {
+                // 没有到删除处
+                if (View.INVISIBLE == viewHolder.itemView.getVisibility()) {//如果viewHolder不可见，则表示用户放手，重置删除区域状态
+                    dragListener.dragState(false);
+                }
+                dragListener.deleteState(false);
+            }
+        } else {
+            if (View.INVISIBLE == viewHolder.itemView.getVisibility()) {//如果viewHolder不可见，则表示用户放手，重置删除区域状态
+                dragListener.dragState(false);
+            }
+            dragListener.deleteState(false);
         }
-        dragListener.deleteState(false);
-//        }
         super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
     }
 
@@ -165,6 +187,7 @@ public class MyCallBack extends ItemTouchHelper.Callback {
     public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
         if (ItemTouchHelper.ACTION_STATE_DRAG == actionState && dragListener != null) {
             dragListener.dragState(true);
+            viewHolder.itemView.setAlpha(0.8f);
         }
         super.onSelectedChanged(viewHolder, actionState);
     }

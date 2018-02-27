@@ -3,8 +3,6 @@ package com.cyf.imageselectordemo
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.helper.ItemTouchHelper
-import android.util.Log
-import android.widget.Toast
 import com.cyf.cyfimageselector.model.PhotoConfigure
 import com.cyf.cyfimageselector.recycler.PostArticleImgAdapter
 import kotlinx.android.synthetic.main.activity_main.*
@@ -33,30 +31,27 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initGri() {
-        button.setOnClickListener {
-            Toast.makeText(this@MainActivity, "选中图片数量 ： " + grapeGridview2.getSelectList().size, Toast.LENGTH_SHORT).show()
-            Log.e("cyf7", "list!!.toString() : " + grapeGridview2.selectList.toString())
-        }
-        grapeGridview1.setOnMyItemClickListener(this, list2, 0)// 查看图片
-        grapeGridview1.isCanDrag = true
-        val c = PhotoConfigure()
-        c.isSingle = false
-        grapeGridview2.setOnMyItemClickListener2(this, ArrayList<String>(), true, c)// 选择图片
-        grapeGridview2.isCanDrag = true
+//        button.setOnClickListener {
+//            Toast.makeText(this@MainActivity, "选中图片数量 ： " + grapeGridview2.getSelectList().size, Toast.LENGTH_SHORT).show()
+//            Log.e("cyf7", "list!!.toString() : " + grapeGridview2.selectList.toString())
+//        }
+//        grapeGridview1.setOnMyItemClickListener(this, list2, 0)// 查看图片
+//        grapeGridview1.isCanDrag = true
+//        val c = PhotoConfigure()
+//        c.isSingle = false
+//        grapeGridview2.setOnMyItemClickListener2(this, ArrayList<String>(), true, c)// 选择图片
+//        grapeGridview2.isCanDrag = true
     }
 
     private fun initRcv() {
-        button.setOnClickListener {
-            Toast.makeText(this@MainActivity, "选中图片数量 ： " + recyclerView2.selectList.size, Toast.LENGTH_SHORT).show()
-            Log.e("cyf7", "list!!.toString() : " + recyclerView2.selectList.toString())
-        }
-        recyclerView1.setOnMyItemClickListener(this, list2, 0)// 查看图片
-        // recyclerView1.isCanDrag = true
+//        recyclerView1.setCanDrag(true)
+//        recyclerView1.setOnMyItemClickListener(this, list2, 0)// 查看图片
         val c = PhotoConfigure()
         c.isSingle = false
-        recyclerView2.setOnMyItemClickListener2(this, ArrayList<String>(), true, c)// 选择图片
-        // recyclerView2.isCanDrag = true
+        recyclerView.setColnum(3)
+        recyclerView.setCanDrag(true)
+        recyclerView.setTv_delete(textView)
+        recyclerView.setOnMyItemClickListener2(this, ArrayList<String>(), true, c)// 选择图片
     }
-
 
 }
