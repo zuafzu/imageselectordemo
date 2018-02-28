@@ -7,6 +7,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Vibrator;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.helper.ItemTouchHelper;
@@ -75,7 +76,13 @@ public class CyfRecyclerView extends RecyclerView {
 
     public void setOnUpdateData(PostArticleImgAdapter.OnUpdateData onUpdateData) {
         this.onUpdateData = onUpdateData;
-        grapeGridAdapter.setOnUpdateData(onUpdateData);
+        if (grapeGridAdapter != null) {
+            grapeGridAdapter.setOnUpdateData(onUpdateData);
+        }
+    }
+
+    public PostArticleImgAdapter getGrapeGridAdapter() {
+        return grapeGridAdapter;
     }
 
     public void setColnum(int colnum) {
@@ -200,7 +207,8 @@ public class CyfRecyclerView extends RecyclerView {
         this.setHasFixedSize(true);
         this.setNestedScrollingEnabled(false);
         this.addItemDecoration(new MyItemDecoration());
-        this.setLayoutManager(new StaggeredGridLayoutManager(colnum, StaggeredGridLayoutManager.VERTICAL));
+        // this.setLayoutManager(new StaggeredGridLayoutManager(colnum, StaggeredGridLayoutManager.VERTICAL));
+        this.setLayoutManager(new GridLayoutManager(getContext(), colnum));
         grapeGridAdapter.setColnum(colnum);
         if (onUpdateData != null) {
             grapeGridAdapter.setOnUpdateData(onUpdateData);
