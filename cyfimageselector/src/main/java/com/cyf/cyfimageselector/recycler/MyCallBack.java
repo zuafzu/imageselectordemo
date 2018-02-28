@@ -28,6 +28,7 @@ import java.util.List;
 
 public class MyCallBack extends ItemTouchHelper.Callback {
 
+    private View tagetView;
     private int dragFlags;
     private int swipeFlags;
     private PostArticleImgAdapter adapter;
@@ -65,6 +66,20 @@ public class MyCallBack extends ItemTouchHelper.Callback {
                                 windowParams.y = mStatusHeight;
                             }
                             windowManager.updateViewLayout(virtualImage, windowParams);
+                            break;
+                        case MotionEvent.ACTION_UP:
+                            /**
+                             * 有镜像时将其移除
+                             */
+                            if (virtualImage != null) {
+                                try {
+                                    windowManager.removeView(virtualImage);
+                                    windowParams = null;
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                                tagetView.setAlpha(1.0f);
+                            }
                             break;
                     }
                 }
@@ -157,24 +172,12 @@ public class MyCallBack extends ItemTouchHelper.Callback {
     @Override
     public void clearView(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
         super.clearView(recyclerView, viewHolder);
-        /**
-         * 有镜像时将其移除
-         */
-        if (virtualImage != null) {
-            try {
-                windowManager.removeView(virtualImage);
-                windowParams = null;
-
-                viewHolder.itemView.setAlpha(1f);
-                adapter.setClick(true);
-                adapter.notifyDataSetChanged();
-                initData();
-                if (dragListener != null) {
-                    dragListener.clearView();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        viewHolder.itemView.setAlpha(1f);
+        adapter.setClick(true);
+        adapter.notifyDataSetChanged();
+        initData();
+        if (dragListener != null) {
+            dragListener.clearView();
         }
     }
 
@@ -250,8 +253,8 @@ public class MyCallBack extends ItemTouchHelper.Callback {
     public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
         if (ItemTouchHelper.ACTION_STATE_DRAG == actionState && dragListener != null) {
             dragListener.dragState(true);
+            tagetView = viewHolder.itemView;
             viewHolder.itemView.setAlpha(0.0f);
-
             //显示镜像view
             int[] location = new int[2];
             viewHolder.itemView.getLocationOnScreen(location);
