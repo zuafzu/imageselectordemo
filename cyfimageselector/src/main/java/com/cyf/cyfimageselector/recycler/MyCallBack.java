@@ -1,10 +1,20 @@
 package com.cyf.cyfimageselector.recycler;
 
+import android.app.Activity;
+import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.PixelFormat;
+import android.graphics.Rect;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.cyf.cyfimageselector.R;
 
@@ -22,16 +32,45 @@ public class MyCallBack extends ItemTouchHelper.Callback {
     private PostArticleImgAdapter adapter;
     private List<String> originImages;//图片没有经过处理，这里传这个进来是为了使原图片的顺序与拖拽顺序保持一致
     private boolean up;//手指抬起标记位
+    private RecyclerView recyclerView;
 
     private boolean isCanDelete = false;
+
+    /**
+     * 状态栏高度
+     */
+    private int mStatusHeight = 0;
 
     public void setCanDelete(boolean canDelete) {
         isCanDelete = canDelete;
     }
 
-    public MyCallBack(PostArticleImgAdapter adapter, List<String> originImages) {
+    public MyCallBack(PostArticleImgAdapter adapter, List<String> originImages, RecyclerView recyclerView) {
         this.adapter = adapter;
         this.originImages = originImages;
+        this.recyclerView = recyclerView;
+        mStatusHeight = getStatusHeight(recyclerView.getContext());
+        recyclerView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                if (windowParams != null) {
+                    switch (motionEvent.getAction()) {
+                        case MotionEvent.ACTION_MOVE:
+                            int x = (int) motionEvent.getRawX();
+                            int y = (int) motionEvent.getRawY();
+                            windowParams.x = x - (windowParams.width / 2);
+                            windowParams.y = y - (windowParams.height / 2);
+                            if (windowParams.y < mStatusHeight) {
+                                windowParams.y = mStatusHeight;
+                            }
+                            windowManager.updateViewLayout(virtualImage, windowParams);
+                            break;
+                    }
+                }
+                return false;
+            }
+        });
+        windowManager = (WindowManager) adapter.getmContext().getSystemService(Context.WINDOW_SERVICE);
     }
 
     /**
@@ -113,11 +152,24 @@ public class MyCallBack extends ItemTouchHelper.Callback {
     @Override
     public void clearView(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
         super.clearView(recyclerView, viewHolder);
-        viewHolder.itemView.setAlpha(1f);
-        adapter.notifyDataSetChanged();
-        initData();
-        if (dragListener != null) {
-            dragListener.clearView();
+        /**
+         * 有镜像时将其移除
+         */
+        if (virtualImage != null) {
+            try {
+                windowManager.removeView(virtualImage);
+                windowParams = null;
+
+                viewHolder.itemView.setAlpha(1f);
+                adapter.setClick(true);
+                adapter.notifyDataSetChanged();
+                initData();
+                if (dragListener != null) {
+                    dragListener.clearView();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -149,9 +201,15 @@ public class MyCallBack extends ItemTouchHelper.Callback {
             return;
         }
         if (isCanDelete) {
-            if (dY >= (recyclerView.getHeight()
-                    - viewHolder.itemView.getBottom()//item底部距离recyclerView顶部高度
-                    - recyclerView.getContext().getResources().getDimension(R.dimen.delete_height))) {//拖到删除处
+            int[] location = new int[2];
+            viewHolder.itemView.getLocationOnScreen(location);
+            int[] location2 = new int[2];
+            tv_delete.getLocationOnScreen(location2);
+            if (location[1] > location2[1] - viewHolder.itemView.getHeight() / 2 - recyclerView.getContext().getResources().getDimension(R.dimen.delete_height)) {
+//            if (dY >= (recyclerView.getHeight()
+//                    - viewHolder.itemView.getBottom()//item底部距离recyclerView顶部高度
+//                    - recyclerView.getContext().getResources().getDimension(R.dimen.delete_height))) {
+                //拖到删除处
                 dragListener.deleteState(true);
                 if (up) {//在删除处放手，则删除item
                     viewHolder.itemView.setVisibility(View.INVISIBLE);//先设置不可见，如果不设置的话，会看到viewHolder返回到原位置时才消失，因为remove会在viewHolder动画执行完成后才将viewHolder删除
@@ -187,7 +245,15 @@ public class MyCallBack extends ItemTouchHelper.Callback {
     public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
         if (ItemTouchHelper.ACTION_STATE_DRAG == actionState && dragListener != null) {
             dragListener.dragState(true);
-            viewHolder.itemView.setAlpha(0.8f);
+            viewHolder.itemView.setAlpha(0.0f);
+
+            //显示镜像view
+            int[] location = new int[2];
+            viewHolder.itemView.getLocationOnScreen(location);
+            int x = location[0];
+            int y = location[1];
+            virtualImage = showVirtualView(getBitmap(viewHolder.itemView), x, y);
+            adapter.setClick(false);
         }
         super.onSelectedChanged(viewHolder, actionState);
     }
@@ -230,9 +296,99 @@ public class MyCallBack extends ItemTouchHelper.Callback {
     }
 
     private DragListener dragListener;
+    private TextView tv_delete;
+
+    public void setDragListener(DragListener dragListener, TextView tv_delete) {
+        this.dragListener = dragListener;
+        if (tv_delete != null) {
+            this.tv_delete = tv_delete;
+        }
+    }
 
     public void setDragListener(DragListener dragListener) {
         this.dragListener = dragListener;
+    }
+
+    /**
+     * windowManager全局变量，用于拖动时显示item的镜像
+     */
+    private WindowManager windowManager;
+
+    /**
+     * 拖动时的item镜像
+     */
+    private ImageView virtualImage;
+
+    /**
+     * item镜像的参数
+     */
+    private WindowManager.LayoutParams windowParams;
+
+    /**
+     * 将镜像bitmap显示在屏幕上，返回显示的imageView
+     *
+     * @param virtualView 镜像bitmap
+     * @param x           显示在屏幕上的x值
+     * @param y           显示在屏幕上的y值
+     * @return 返回imageVIew
+     */
+    private ImageView showVirtualView(Bitmap virtualView, float x, float y) {
+        windowParams = new WindowManager.LayoutParams();
+        windowParams.gravity = Gravity.START | Gravity.TOP;
+        windowParams.x = (int) x - 4;
+        windowParams.y = (int) y - 4;
+
+        windowParams.alpha = 0.8f;
+        windowParams.width = (int) (virtualView.getWidth() * 1f) + 8;
+        windowParams.height = (int) (virtualView.getHeight() * 1f) + 8;
+        windowParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+                | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+                | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN;
+        windowParams.format = PixelFormat.TRANSLUCENT;
+        windowParams.windowAnimations = 0;
+        ImageView imageView = new ImageView(adapter.getmContext());
+        imageView.setImageBitmap(virtualView);
+        windowManager.addView(imageView, windowParams);
+        return imageView;
+
+    }
+
+    /**
+     * 通过item position位置获得bitmap
+     *
+     * @param view gridView的view
+     * @return
+     */
+    private Bitmap getBitmap(View view) {
+        view.destroyDrawingCache();
+        view.setDrawingCacheEnabled(true);
+        return Bitmap.createBitmap(view.getDrawingCache());
+    }
+
+    /**
+     * 获取状态栏的高度
+     *
+     * @param context
+     * @return
+     */
+    private static int getStatusHeight(Context context) {
+        int statusHeight = 0;
+        Rect localRect = new Rect();
+        ((Activity) context).getWindow().getDecorView().getWindowVisibleDisplayFrame(localRect);
+        statusHeight = localRect.top;
+        if (0 == statusHeight) {
+            Class<?> localClass;
+            try {
+                localClass = Class.forName("com.android.internal.R$dimen");
+                Object localObject = localClass.newInstance();
+                int height = Integer.parseInt(localClass.getField("status_bar_height").get(localObject).toString());
+                statusHeight = context.getResources().getDimensionPixelSize(height);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return statusHeight;
     }
 
 }

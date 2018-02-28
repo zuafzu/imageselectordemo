@@ -39,6 +39,8 @@ public class CyfRecyclerView extends RecyclerView {
 
     private boolean isClick = true;//缩略图是否可以点击（仅限查看时有效,初始化之前调用）
 
+    private PostArticleImgAdapter.OnUpdateData onUpdateData;
+
     public CyfRecyclerView(Context context) {
         super(context);
     }
@@ -66,10 +68,14 @@ public class CyfRecyclerView extends RecyclerView {
         this.tv_delete = tv_delete;
         this.tv_delete.setGravity(Gravity.CENTER);
         this.tv_delete.setTextColor(Color.WHITE);
-        this.tv_delete.setTextSize(16f);
-        this.tv_delete.setAlpha(0.8f);
-        this.tv_delete.setCompoundDrawablePadding(4);
-        this.tv_delete.setPadding(356, 0, 356, 0);
+        this.tv_delete.setTextSize(14f);
+        this.tv_delete.setAlpha(0.9f);
+        this.tv_delete.setPadding(320, 0, 320, 0);
+    }
+
+    public void setOnUpdateData(PostArticleImgAdapter.OnUpdateData onUpdateData) {
+        this.onUpdateData = onUpdateData;
+        grapeGridAdapter.setOnUpdateData(onUpdateData);
     }
 
     public void setColnum(int colnum) {
@@ -78,6 +84,11 @@ public class CyfRecyclerView extends RecyclerView {
 
     public void setCanDrag(boolean canDrag) {
         isCanDrag = canDrag;
+    }
+
+    public void setCanDrag(boolean canDrag, PostArticleImgAdapter.OnUpdateData onUpdateData) {
+        isCanDrag = canDrag;
+        this.onUpdateData = onUpdateData;
     }
 
     public void setDragListener(MyCallBack.DragListener dragListener) {
@@ -184,11 +195,19 @@ public class CyfRecyclerView extends RecyclerView {
      * 初始化显示界面
      */
     private void initRecyclerView(boolean isMcanDrag) {
+        this.setOverScrollMode(OVER_SCROLL_NEVER);
+        this.setFadingEdgeLength(0);
+        this.setHasFixedSize(true);
+        this.setNestedScrollingEnabled(false);
         this.addItemDecoration(new MyItemDecoration());
         this.setLayoutManager(new StaggeredGridLayoutManager(colnum, StaggeredGridLayoutManager.VERTICAL));
+        grapeGridAdapter.setColnum(colnum);
+        if (onUpdateData != null) {
+            grapeGridAdapter.setOnUpdateData(onUpdateData);
+        }
         setAdapter(grapeGridAdapter);
 
-        MyCallBack myCallBack = new MyCallBack(grapeGridAdapter, mList);
+        MyCallBack myCallBack = new MyCallBack(grapeGridAdapter, mList, this);
         itemTouchHelper = new ItemTouchHelper(myCallBack);
         itemTouchHelper.attachToRecyclerView(this);//绑定RecyclerView
         if (isMcanDrag) {
@@ -219,12 +238,14 @@ public class CyfRecyclerView extends RecyclerView {
                                 tv_delete.setCompoundDrawablesWithIntrinsicBounds(null, null, drawable, null);
                                 tv_delete.setBackgroundResource(android.R.color.holo_red_dark);
                                 tv_delete.setText("松手即可删除");
+                                tv_delete.setGravity(Gravity.CENTER);
                             } else {
                                 Drawable drawable = getResources().getDrawable(
                                         R.mipmap.an2);
                                 tv_delete.setCompoundDrawablesWithIntrinsicBounds(null, null, drawable, null);
                                 tv_delete.setText("拖到此处删除");
                                 tv_delete.setBackgroundResource(android.R.color.holo_red_light);
+                                tv_delete.setGravity(Gravity.CENTER);
                             }
                         }
                     }
@@ -244,7 +265,7 @@ public class CyfRecyclerView extends RecyclerView {
                     public void clearView() {
 
                     }
-                });
+                }, tv_delete);
             }
         }
     }

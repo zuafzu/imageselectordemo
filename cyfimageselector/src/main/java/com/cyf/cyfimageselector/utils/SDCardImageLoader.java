@@ -6,6 +6,7 @@ import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.widget.ImageView;
 
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.RequestOptions;
 import com.cyf.cyfimageselector.GlideApp;
 import com.cyf.cyfimageselector.R;
@@ -101,8 +102,9 @@ public class SDCardImageLoader {
 //                    thumbnail(0.1f).into(piv);
 //        }
         GlideApp.with(context).load(path).
-                apply(new RequestOptions().error(R.mipmap.ic_default_img).fitCenter().encodeQuality(50)).
-                thumbnail(0.1f).dontAnimate().into(piv);
+                apply(new RequestOptions().error(R.mipmap.ic_default_img).
+                        fitCenter().encodeQuality(50)).thumbnail(0.1f).transition(new DrawableTransitionOptions().
+                        crossFade(200)).into(piv);
     }
 
 }

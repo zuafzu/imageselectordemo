@@ -36,6 +36,21 @@ public class PostArticleImgAdapter extends RecyclerView.Adapter<PostArticleImgAd
     private int type = 0;// 0带保存按钮，3不带保存按钮
     private int mType = 0;//0查看，1编辑
 
+    private int colnum = 3;//一行几个item
+    private OnUpdateData onUpdateData;
+
+    public void setColnum(int colnum) {
+        this.colnum = colnum;
+    }
+
+    public void setOnUpdateData(OnUpdateData onUpdateData) {
+        this.onUpdateData = onUpdateData;
+    }
+
+    public Context getmContext() {
+        return mContext;
+    }
+
     public void setListener(View.OnClickListener listener) {
         this.listener = listener;
     }
@@ -113,9 +128,11 @@ public class PostArticleImgAdapter extends RecyclerView.Adapter<PostArticleImgAd
                     holder.btn_delete.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            mDatas.remove(holder.getAdapterPosition());
-                            setmList();
-                            notifyItemRemoved(holder.getAdapterPosition());
+                            if (isClick) {
+                                mDatas.remove(holder.getAdapterPosition());
+                                setmList();
+                                notifyItemRemoved(holder.getAdapterPosition());
+                            }
                         }
                     });
                 } else {
@@ -126,41 +143,52 @@ public class PostArticleImgAdapter extends RecyclerView.Adapter<PostArticleImgAd
             holder.photo_wall_item_photo.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if (mDatas.size() == 0 || mDatas.get(holder.getAdapterPosition()).equals("add")) {
-                        for (int j = 0; j < mDatas.size(); j++) {
-                            if (mDatas.get(j).equals("add")) {
-                                mDatas.remove(j);
-                                break;
+                    if (isClick) {
+                        if (mDatas.size() == 0 || mDatas.get(holder.getAdapterPosition()).equals("add")) {
+                            for (int j = 0; j < mDatas.size(); j++) {
+                                if (mDatas.get(j).equals("add")) {
+                                    mDatas.remove(j);
+                                    break;
+                                }
                             }
+                            PhotoWallActivity2.openImageSelecter((Activity) mContext, photoConfigure, new PhotoWallActivity2.OnHanlderResultCallback() {
+                                @Override
+                                public void onHanlderSuccess(List<String> resultList) {
+                                    mDatas.clear();
+                                    mDatas.addAll(resultList);
+                                    setmList();
+                                    notifyDataSetChanged();
+                                }
+                            });
+                        } else {
+                            for (int j = 0; j < mDatas.size(); j++) {
+                                if (mDatas.get(j).equals("add")) {
+                                    mDatas.remove(j);
+                                    break;
+                                }
+                            }
+                            PhotoPreviewActivity.openPhotoPreview((Activity) mContext, holder.getAdapterPosition(), num, 2, (ArrayList<String>) mDatas, new PhotoPreviewActivity.OnHanlderResultCallback() {
+                                @Override
+                                public void onHanlderSuccess(List<String> resultList) {
+                                    mDatas.clear();
+                                    mDatas.addAll(resultList);
+                                    setmList();
+                                    notifyDataSetChanged();
+                                }
+                            });
                         }
-                        PhotoWallActivity2.openImageSelecter((Activity) mContext, photoConfigure, new PhotoWallActivity2.OnHanlderResultCallback() {
-                            @Override
-                            public void onHanlderSuccess(List<String> resultList) {
-                                mDatas.clear();
-                                mDatas.addAll(resultList);
-                                setmList();
-                                notifyDataSetChanged();
-                            }
-                        });
-                    } else {
-                        for (int j = 0; j < mDatas.size(); j++) {
-                            if (mDatas.get(j).equals("add")) {
-                                mDatas.remove(j);
-                                break;
-                            }
-                        }
-                        PhotoPreviewActivity.openPhotoPreview((Activity) mContext, holder.getAdapterPosition(), num, 2, (ArrayList<String>) mDatas, new PhotoPreviewActivity.OnHanlderResultCallback() {
-                            @Override
-                            public void onHanlderSuccess(List<String> resultList) {
-                                mDatas.clear();
-                                mDatas.addAll(resultList);
-                                setmList();
-                                notifyDataSetChanged();
-                            }
-                        });
                     }
                 }
             });
+            if (holder.getAdapterPosition() == mDatas.size() - 1) {
+                if (onUpdateData != null) {
+                    int line = mDatas.size() / colnum;
+                    if (mDatas.size() % colnum != 0) {
+                        line++;
+                    }
+                    onUpdateData.reflush(line);
+                }
+            }
         }
     }
 
@@ -200,5 +228,8 @@ public class PostArticleImgAdapter extends RecyclerView.Adapter<PostArticleImgAd
         }
     }
 
+    public interface OnUpdateData {
+        void reflush(int line);
+    }
 
 }

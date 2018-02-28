@@ -3,6 +3,9 @@ package com.cyf.imageselectordemo
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.helper.ItemTouchHelper
+import android.util.Log
+import android.widget.LinearLayout
+import android.widget.RelativeLayout
 import com.cyf.cyfimageselector.model.PhotoConfigure
 import com.cyf.cyfimageselector.recycler.PostArticleImgAdapter
 import kotlinx.android.synthetic.main.activity_main.*
@@ -48,10 +51,17 @@ class MainActivity : AppCompatActivity() {
 //        recyclerView1.setOnMyItemClickListener(this, list2, 0)// 查看图片
         val c = PhotoConfigure()
         c.isSingle = false
-        recyclerView.setColnum(3)
-        recyclerView.setCanDrag(true)
+        recyclerView.setColnum(4)
         recyclerView.setTv_delete(textView)
-        recyclerView.setOnMyItemClickListener2(this, ArrayList<String>(), true, c)// 选择图片
+        recyclerView.setCanDrag(true) {
+            recyclerView.post({
+                val width = recyclerView.measuredWidth
+                val h = width / 4 * it
+                Log.e("cyf789", " $h    $width   $it")
+                rl_view.layoutParams = LinearLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, h)
+            })
+        }
+        recyclerView.setOnMyItemClickListener2(this, ArrayList<String>(), false, c)// 选择图片
     }
 
 }
