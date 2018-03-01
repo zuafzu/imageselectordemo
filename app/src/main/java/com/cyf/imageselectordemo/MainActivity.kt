@@ -53,6 +53,9 @@ class MainActivity : AppCompatActivity() {
 //        recyclerView.setListener {
 //            Toast.makeText(this@MainActivity, list[it], Toast.LENGTH_SHORT).show()
 //        }.show(config)
+        // 压缩图片
+
+
     }
 
 }
