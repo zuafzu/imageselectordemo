@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.support.v7.widget.AppCompatCheckBox;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,69 +24,47 @@ import java.util.List;
 
 public class PostArticleImgAdapter extends RecyclerView.Adapter<PostArticleImgAdapter.MyViewHolder> {
 
-    private List<String> mDatas;
-    private final LayoutInflater mLayoutInflater;
-    private final Context mContext;
-    private boolean isdelete;
-    private int num;
+    private Context mContext;
+    private CyfRecyclerView cyfRecyclerView;
     private PhotoConfigure photoConfigure;
-    private View.OnClickListener listener;
-    private boolean isClick = true;
+    private LayoutInflater mLayoutInflater;
 
     private int type = 0;// 0带保存按钮，3不带保存按钮
-    private int mType = 0;//0查看，1编辑
 
-    private int colnum = 3;//一行几个item
-    private OnUpdateData onUpdateData;
-
-    public void setColnum(int colnum) {
-        this.colnum = colnum;
-    }
-
-    public void setOnUpdateData(OnUpdateData onUpdateData) {
-        this.onUpdateData = onUpdateData;
+    public void setClick(boolean isClick) {
+        if (photoConfigure != null) {
+            photoConfigure.setClick(isClick);
+        }
     }
 
     public Context getmContext() {
         return mContext;
     }
 
-    public void setListener(View.OnClickListener listener) {
-        this.listener = listener;
-    }
-
-    public void setClick(boolean click) {
-        isClick = click;
-    }
-
-    public PostArticleImgAdapter(Context context, List<String> datas, boolean isdelete, int num, PhotoConfigure photoConfigure) {
-        this.mDatas = datas;
+    public PostArticleImgAdapter(Context context, CyfRecyclerView cyfRecyclerView, PhotoConfigure photoConfigure) {
         this.mContext = context;
-        this.mLayoutInflater = LayoutInflater.from(context);
-        this.isdelete = isdelete;
-        this.num = num;
+        this.cyfRecyclerView = cyfRecyclerView;
         this.photoConfigure = photoConfigure;
 
-        if (this.mDatas.size() > 0) {
-            for (int i = 0; i < this.mDatas.size(); i++) {
-                if (this.mDatas.get(i).equals("add")) {
-                    this.mDatas.remove(i);
-                    break;
+        if (photoConfigure.isSave()) {
+            this.type = 0;
+        } else {
+            this.type = 3;
+        }
+        this.mLayoutInflater = LayoutInflater.from(context);
+        if (photoConfigure.getType() == PhotoConfigure.EditImg) {
+            if (photoConfigure.getList().size() > 0) {
+                for (int i = 0; i < photoConfigure.getList().size(); i++) {
+                    if (photoConfigure.getList().get(i).equals("add")) {
+                        photoConfigure.getList().remove(i);
+                        break;
+                    }
                 }
             }
+            if (photoConfigure.getList().size() < photoConfigure.getNum()) {
+                photoConfigure.getList().add("add");
+            }
         }
-        if (this.mDatas.size() < num) {
-            this.mDatas.add("add");
-        }
-        mType = 1;
-    }
-
-    public PostArticleImgAdapter(Context context, List<String> datas, int type, boolean isClick) {
-        this.mDatas = datas;
-        this.mContext = context;
-        this.mLayoutInflater = LayoutInflater.from(context);
-        this.type = type;
-        mType = 0;
     }
 
     @Override
@@ -99,16 +76,16 @@ public class PostArticleImgAdapter extends RecyclerView.Adapter<PostArticleImgAd
     public void onBindViewHolder(final MyViewHolder holder, final int position) {
         holder.view_top.setVisibility(View.GONE);
         holder.photo_wall_item_cb.setVisibility(View.GONE);
-        if (mType == 0) {
-            SDCardImageLoader.setImgThumbnail(mContext, mDatas.get(holder.getAdapterPosition()), ((ImageView) holder.photo_wall_item_photo));
+        if (photoConfigure.getType() == PhotoConfigure.WatchImg) {
+            SDCardImageLoader.setImgThumbnail(mContext, photoConfigure.getList().get(holder.getAdapterPosition()), ((ImageView) holder.photo_wall_item_photo));
             holder.photo_wall_item_photo.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if (isClick) {
-                        if (listener != null) {
-                            listener.onClick(holder.photo_wall_item_photo);
+                    if (photoConfigure.isClick()) {
+                        if (cyfRecyclerView.getListener() != null) {
+                            cyfRecyclerView.getListener().onClick(holder.getAdapterPosition());
                         } else {
-                            PhotoPreviewActivity.openPhotoPreview((Activity) mContext, holder.getAdapterPosition(), mDatas.size(), type, (ArrayList<String>) mDatas, new PhotoPreviewActivity.OnHanlderResultCallback() {
+                            PhotoPreviewActivity.openPhotoPreview((Activity) mContext, holder.getAdapterPosition(), photoConfigure.getList().size(), type, (ArrayList<String>) photoConfigure.getList(), new PhotoPreviewActivity.OnHanlderResultCallback() {
                                 @Override
                                 public void onHanlderSuccess(List<String> resultList) {
 
@@ -119,97 +96,92 @@ public class PostArticleImgAdapter extends RecyclerView.Adapter<PostArticleImgAd
                 }
             });
         } else {
-            if (mDatas.get(holder.getAdapterPosition()).equals("add")) {
+            if (photoConfigure.getList().get(holder.getAdapterPosition()).equals("add")) {
                 ((View) holder.photo_wall_item_photo.getParent()).setTag(R.string.app_name, "add");
                 holder.btn_delete.setVisibility(View.GONE);
                 ((ImageView) holder.photo_wall_item_photo).setImageResource(R.mipmap.ic_add_image);
             } else {
-                if (isdelete) {
+                if (photoConfigure.isDelete()) {
                     holder.btn_delete.setVisibility(View.VISIBLE);
                     holder.btn_delete.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            if (isClick) {
-                                mDatas.remove(holder.getAdapterPosition());
-                                setmList();
-                                notifyItemRemoved(holder.getAdapterPosition());
-                            }
+                            photoConfigure.getList().remove(holder.getAdapterPosition());
+                            setmList();
+                            notifyItemRemoved(holder.getAdapterPosition());
                         }
                     });
                 } else {
                     holder.btn_delete.setVisibility(View.GONE);
                 }
-                SDCardImageLoader.setImgThumbnail(mContext, mDatas.get(holder.getAdapterPosition()), ((ImageView) holder.photo_wall_item_photo));
+                SDCardImageLoader.setImgThumbnail(mContext, photoConfigure.getList().get(holder.getAdapterPosition()), ((ImageView) holder.photo_wall_item_photo));
             }
             holder.photo_wall_item_photo.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if (isClick) {
-                        if (mDatas.size() == 0 || mDatas.get(holder.getAdapterPosition()).equals("add")) {
-                            for (int j = 0; j < mDatas.size(); j++) {
-                                if (mDatas.get(j).equals("add")) {
-                                    mDatas.remove(j);
-                                    break;
-                                }
+                    if (photoConfigure.getList().size() == 0 ||
+                            photoConfigure.getList().get(holder.getAdapterPosition()).equals("add")) {
+                        for (int j = 0; j < photoConfigure.getList().size(); j++) {
+                            if (photoConfigure.getList().get(j).equals("add")) {
+                                photoConfigure.getList().remove(j);
+                                break;
                             }
-                            PhotoWallActivity2.openImageSelecter((Activity) mContext, photoConfigure, new PhotoWallActivity2.OnHanlderResultCallback() {
-                                @Override
-                                public void onHanlderSuccess(List<String> resultList) {
-                                    mDatas.clear();
-                                    mDatas.addAll(resultList);
-                                    setmList();
-                                    notifyDataSetChanged();
-                                }
-                            });
-                        } else {
-                            for (int j = 0; j < mDatas.size(); j++) {
-                                if (mDatas.get(j).equals("add")) {
-                                    mDatas.remove(j);
-                                    break;
-                                }
-                            }
-                            PhotoPreviewActivity.openPhotoPreview((Activity) mContext, holder.getAdapterPosition(), num, 2, (ArrayList<String>) mDatas, new PhotoPreviewActivity.OnHanlderResultCallback() {
-                                @Override
-                                public void onHanlderSuccess(List<String> resultList) {
-                                    mDatas.clear();
-                                    mDatas.addAll(resultList);
-                                    setmList();
-                                    notifyDataSetChanged();
-                                }
-                            });
                         }
+                        PhotoWallActivity2.openImageSelecter((Activity) mContext, photoConfigure, new PhotoWallActivity2.OnHanlderResultCallback() {
+                            @Override
+                            public void onHanlderSuccess(List<String> resultList) {
+                                photoConfigure.getList().clear();
+                                photoConfigure.getList().addAll(resultList);
+                                setmList();
+                                notifyDataSetChanged();
+                            }
+                        });
+                    } else {
+                        for (int j = 0; j < photoConfigure.getList().size(); j++) {
+                            if (photoConfigure.getList().get(j).equals("add")) {
+                                photoConfigure.getList().remove(j);
+                                break;
+                            }
+                        }
+                        PhotoPreviewActivity.openPhotoPreview((Activity) mContext, holder.getAdapterPosition(), photoConfigure.getNum(), 2, (ArrayList<String>) photoConfigure.getList(), new PhotoPreviewActivity.OnHanlderResultCallback() {
+                            @Override
+                            public void onHanlderSuccess(List<String> resultList) {
+                                photoConfigure.getList().clear();
+                                photoConfigure.getList().addAll(resultList);
+                                setmList();
+                                notifyDataSetChanged();
+                            }
+                        });
                     }
                 }
             });
-//            if (holder.getAdapterPosition() == mDatas.size() - 1) {
-                if (onUpdateData != null) {
-                    int line = mDatas.size() / colnum;
-                    if (mDatas.size() % colnum != 0) {
-                        line++;
-                    }
-                    onUpdateData.reflush(line);
+            if (cyfRecyclerView.getOnUpdateData() != null) {
+                int line = photoConfigure.getList().size() / photoConfigure.getColnum();
+                if (photoConfigure.getList().size() % photoConfigure.getColnum() != 0) {
+                    line++;
                 }
-//            }
+                cyfRecyclerView.getOnUpdateData().reflush(line);
+            }
         }
     }
 
     @Override
     public int getItemCount() {
-        return mDatas == null ? 0 : mDatas.size();
+        return photoConfigure.getList() == null ? 0 : photoConfigure.getList().size();
     }
 
 
     public void setmList() {
-        if (mDatas.size() > 0) {
-            for (int i = 0; i < mDatas.size(); i++) {
-                if (mDatas.get(i).equals("add")) {
-                    mDatas.remove(i);
+        if (photoConfigure.getList().size() > 0) {
+            for (int i = 0; i < photoConfigure.getList().size(); i++) {
+                if (photoConfigure.getList().get(i).equals("add")) {
+                    photoConfigure.getList().remove(i);
                     break;
                 }
             }
         }
-        if (mDatas.size() < num) {
-            mDatas.add("add");
+        if (photoConfigure.getList().size() < photoConfigure.getNum()) {
+            photoConfigure.getList().add("add");
         }
     }
 

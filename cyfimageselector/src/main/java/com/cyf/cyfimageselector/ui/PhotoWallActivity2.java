@@ -205,7 +205,10 @@ public class PhotoWallActivity2 extends PhotoBaseActivity {
             @Override
             public void onClick(View v) {
                 if (listView.getVisibility() == View.GONE) {
-                    PhotoWallActivity2.this.finish();
+                    if (callback != null) {
+                        callback.onHanlderSuccess(getSelectImagePaths());
+                        PhotoWallActivity2.this.finish();
+                    }
                 } else {
                     listView.startAnimation(AnimationUtils.loadAnimation(PhotoWallActivity2.this, R.anim.weight__close));
                     listView.setVisibility(View.GONE);
@@ -569,7 +572,10 @@ public class PhotoWallActivity2 extends PhotoBaseActivity {
     @Override
     public void onBackPressed() {
         if (listView.getVisibility() == View.GONE) {
-            PhotoWallActivity2.this.finish();
+            if (callback != null) {
+                callback.onHanlderSuccess(getSelectImagePaths());
+                PhotoWallActivity2.this.finish();
+            }
         } else {
             listView.startAnimation(AnimationUtils.loadAnimation(PhotoWallActivity2.this, R.anim.weight__close));
             listView.setVisibility(View.GONE);

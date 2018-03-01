@@ -19,6 +19,7 @@ import android.widget.TextView;
 
 import com.cyf.cyfimageselector.R;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -28,13 +29,17 @@ import java.util.List;
 
 public class MyCallBack extends ItemTouchHelper.Callback {
 
+    private final int padding = 8;
+
     private View tagetView;
     private int dragFlags;
     private int swipeFlags;
     private PostArticleImgAdapter adapter;
     private List<String> originImages;//图片没有经过处理，这里传这个进来是为了使原图片的顺序与拖拽顺序保持一致
+    private List<View> viewList = new ArrayList<>();
     private boolean up;//手指抬起标记位
     private RecyclerView recyclerView;
+    private boolean isUp = false;//拖拽后是否抬手
 
     private boolean isCanDelete = false;
 
@@ -58,6 +63,7 @@ public class MyCallBack extends ItemTouchHelper.Callback {
                 if (windowParams != null) {
                     switch (motionEvent.getAction()) {
                         case MotionEvent.ACTION_MOVE:
+                            isUp = false;
                             int x = (int) motionEvent.getRawX();
                             int y = (int) motionEvent.getRawY();
                             windowParams.x = x - (windowParams.width / 2);
@@ -68,18 +74,7 @@ public class MyCallBack extends ItemTouchHelper.Callback {
                             windowManager.updateViewLayout(virtualImage, windowParams);
                             break;
                         case MotionEvent.ACTION_UP:
-                            /**
-                             * 有镜像时将其移除
-                             */
-                            if (virtualImage != null) {
-                                try {
-                                    windowManager.removeView(virtualImage);
-                                    windowParams = null;
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                                tagetView.setAlpha(1.0f);
-                            }
+                            isUp = true;
                             break;
                     }
                 }
@@ -172,12 +167,31 @@ public class MyCallBack extends ItemTouchHelper.Callback {
     @Override
     public void clearView(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
         super.clearView(recyclerView, viewHolder);
-        viewHolder.itemView.setAlpha(1f);
-        adapter.setClick(true);
-        adapter.notifyDataSetChanged();
-        initData();
-        if (dragListener != null) {
-            dragListener.clearView();
+        if (recyclerView.getScrollState() == RecyclerView.SCROLL_STATE_IDLE &&
+                !recyclerView.isComputingLayout()) {
+            viewHolder.itemView.setAlpha(1f);
+            adapter.setClick(true);
+            adapter.setmList();
+            adapter.notifyDataSetChanged();
+            initData();
+            if (dragListener != null) {
+                dragListener.clearView();
+            }
+            /**
+             * 有镜像时将其移除
+             */
+            if (windowManager != null) {
+                for (int i = 0; i < viewList.size(); i++) {
+                    try {
+                        windowManager.removeView(viewList.get(i));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                viewList.clear();
+                windowParams = null;
+                tagetView.setAlpha(1.0f);
+            }
         }
     }
 
@@ -213,13 +227,14 @@ public class MyCallBack extends ItemTouchHelper.Callback {
             viewHolder.itemView.getLocationOnScreen(location);
             int[] location2 = new int[2];
             tv_delete.getLocationOnScreen(location2);
-            if (location[1] > location2[1] - viewHolder.itemView.getHeight() / 2 - recyclerView.getContext().getResources().getDimension(R.dimen.delete_height)) {
+            if (location[1] + padding / 2 > location2[1] - viewHolder.itemView.getHeight() / 2 - recyclerView.getContext().getResources().getDimension(R.dimen.delete_height) / 2) {
 //            if (dY >= (recyclerView.getHeight()
 //                    - viewHolder.itemView.getBottom()//item底部距离recyclerView顶部高度
 //                    - recyclerView.getContext().getResources().getDimension(R.dimen.delete_height))) {
                 //拖到删除处
                 dragListener.deleteState(true);
                 if (up) {//在删除处放手，则删除item
+                    windowParams.alpha = 0.0f;
                     viewHolder.itemView.setVisibility(View.INVISIBLE);//先设置不可见，如果不设置的话，会看到viewHolder返回到原位置时才消失，因为remove会在viewHolder动画执行完成后才将viewHolder删除
                     originImages.remove(viewHolder.getAdapterPosition());
                     adapter.setmList();
@@ -233,13 +248,38 @@ public class MyCallBack extends ItemTouchHelper.Callback {
                     dragListener.dragState(false);
                 }
                 dragListener.deleteState(false);
+                // 回弹动画
+                if (isUp) {
+                    if (windowParams != null) {
+                        int[] location3 = new int[2];
+                        viewHolder.itemView.getLocationOnScreen(location3);
+                        int x = location3[0];
+                        int y = location3[1];
+                        windowParams.x = x - padding / 2;
+                        windowParams.y = y - padding / 2;
+                        windowManager.updateViewLayout(virtualImage, windowParams);
+                    }
+                }
             }
         } else {
             if (View.INVISIBLE == viewHolder.itemView.getVisibility()) {//如果viewHolder不可见，则表示用户放手，重置删除区域状态
                 dragListener.dragState(false);
             }
             dragListener.deleteState(false);
+            // 回弹动画
+            if (isUp) {
+                if (windowParams != null) {
+                    int[] location3 = new int[2];
+                    viewHolder.itemView.getLocationOnScreen(location3);
+                    int x = location3[0];
+                    int y = location3[1];
+                    windowParams.x = x - padding / 2;
+                    windowParams.y = y - padding / 2;
+                    windowManager.updateViewLayout(virtualImage, windowParams);
+                }
+            }
         }
+
         super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
     }
 
@@ -261,6 +301,7 @@ public class MyCallBack extends ItemTouchHelper.Callback {
             int x = location[0];
             int y = location[1];
             virtualImage = showVirtualView(getBitmap(viewHolder.itemView), x, y);
+            viewList.add(virtualImage);
             adapter.setClick(false);
         }
         super.onSelectedChanged(viewHolder, actionState);
@@ -343,12 +384,11 @@ public class MyCallBack extends ItemTouchHelper.Callback {
     private ImageView showVirtualView(Bitmap virtualView, float x, float y) {
         windowParams = new WindowManager.LayoutParams();
         windowParams.gravity = Gravity.START | Gravity.TOP;
-        windowParams.x = (int) x - 4;
-        windowParams.y = (int) y - 4;
-
+        windowParams.x = (int) x - padding / 2;
+        windowParams.y = (int) y - padding / 2;
         windowParams.alpha = 0.8f;
-        windowParams.width = (int) (virtualView.getWidth() * 1f) + 8;
-        windowParams.height = (int) (virtualView.getHeight() * 1f) + 8;
+        windowParams.width = (int) (virtualView.getWidth() * 1f) + padding;
+        windowParams.height = (int) (virtualView.getHeight() * 1f) + padding;
         windowParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                 | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
                 | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON

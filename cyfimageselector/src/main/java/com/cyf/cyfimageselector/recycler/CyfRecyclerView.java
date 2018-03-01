@@ -3,23 +3,18 @@ package com.cyf.cyfimageselector.recycler;
 import android.app.Service;
 import android.content.Context;
 import android.graphics.Color;
-import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Vibrator;
 import android.support.annotation.Nullable;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.AttributeSet;
 import android.view.Gravity;
-import android.view.View;
 import android.widget.TextView;
 
 import com.cyf.cyfimageselector.R;
 import com.cyf.cyfimageselector.model.PhotoConfigure;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -28,19 +23,13 @@ import java.util.List;
 
 public class CyfRecyclerView extends RecyclerView {
 
-    private int colnum = 3;
-    private boolean isCanDrag = false;
+    private PhotoConfigure photoConfigure;
+    private TextView tv_delete = null;// 删除文字item，针对编辑添加有效
+    private OnCyfItemClick listener = null;// 缩略图点击事件
+    private PostArticleImgAdapter.OnUpdateData onUpdateData;// 监听视图更新，针对编辑添加有效
 
-    private List<String> mList = new ArrayList<>();
     private PostArticleImgAdapter grapeGridAdapter;
     private ItemTouchHelper itemTouchHelper;
-    private OnClickListener listener;
-    private MyCallBack.DragListener dragListener;
-    private TextView tv_delete;
-
-    private boolean isClick = true;//缩略图是否可以点击（仅限查看时有效,初始化之前调用）
-
-    private PostArticleImgAdapter.OnUpdateData onUpdateData;
 
     public CyfRecyclerView(Context context) {
         super(context);
@@ -56,7 +45,7 @@ public class CyfRecyclerView extends RecyclerView {
 
     @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        if (isCanDrag) {
+        if (photoConfigure.isCanDrag()) {
             super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         } else {
             int expandSpec = MeasureSpec.makeMeasureSpec(
@@ -65,157 +54,65 @@ public class CyfRecyclerView extends RecyclerView {
         }
     }
 
-    public void setTv_delete(TextView tv_delete) {
-        this.tv_delete = tv_delete;
-        this.tv_delete.setGravity(Gravity.CENTER);
-        this.tv_delete.setTextColor(Color.WHITE);
-        this.tv_delete.setTextSize(14f);
-        this.tv_delete.setAlpha(0.9f);
-        this.tv_delete.setPadding(320, 0, 320, 0);
-    }
-
-    public void setOnUpdateData(PostArticleImgAdapter.OnUpdateData onUpdateData) {
-        this.onUpdateData = onUpdateData;
-        if (grapeGridAdapter != null) {
-            grapeGridAdapter.setOnUpdateData(onUpdateData);
-        }
-    }
-
-    public PostArticleImgAdapter getGrapeGridAdapter() {
-        return grapeGridAdapter;
-    }
-
-    public void setColnum(int colnum) {
-        this.colnum = colnum;
-    }
-
-    public void setCanDrag(boolean canDrag) {
-        isCanDrag = canDrag;
-    }
-
-    public void setCanDrag(boolean canDrag, PostArticleImgAdapter.OnUpdateData onUpdateData) {
-        isCanDrag = canDrag;
-        this.onUpdateData = onUpdateData;
-    }
-
-    public void setDragListener(MyCallBack.DragListener dragListener) {
-        this.dragListener = dragListener;
-    }
-
-    public void setClick(boolean click) {
-        isClick = click;
-        grapeGridAdapter.setClick(click);
-    }
-
-    public void setOnItemClickListener(OnClickListener listener) {
+    public CyfRecyclerView setListener(OnCyfItemClick listener) {
         this.listener = listener;
-        grapeGridAdapter.setListener(listener);
+        return this;
+    }
+
+    public CyfRecyclerView setTv_delete(TextView tv_delete) {
+        this.tv_delete = tv_delete;
+        return this;
+    }
+
+    public CyfRecyclerView setOnUpdateData(PostArticleImgAdapter.OnUpdateData onUpdateData) {
+        this.onUpdateData = onUpdateData;
+        return this;
+    }
+
+    public OnCyfItemClick getListener() {
+        return listener;
+    }
+
+    public PostArticleImgAdapter.OnUpdateData getOnUpdateData() {
+        return onUpdateData;
     }
 
     /**
      * 预览图片
      * 编辑添加移除图片
-     *
-     * @param context
-     * @param list
-     * @param type    （0带保存按钮，3不带保存按钮），（6带删除按钮，9不带删除按钮）
      */
-    public void setWatchEditImg(Context context, final List<String> list, int type, final PhotoConfigure photoConfigure) {
-        mList = list;
-        if (type == 0 || type == 3) {
-            setWatchImg(context, mList, type);
-        } else if (type == 6 || type == 9) {
-            setEditImg(context, mList, (6 == type), photoConfigure);
-        }
-    }
-
-    /**
-     * 预览图片
-     *
-     * @param context
-     * @param list
-     * @param type    0带保存按钮，3不带保存按钮
-     */
-    public void setWatchImg(Context context, final List<String> list, final int type) {
-        mList = list;
-        grapeGridAdapter = new PostArticleImgAdapter(context, mList, type, isClick);
-        initRecyclerView(false);
-    }
-
-    /**
-     * 编辑添加移除图片
-     *
-     * @param context
-     * @param list           已选中的图片
-     * @param isDelete       true带删除按钮，false不带
-     * @param photoConfigure
-     */
-    public void setEditImg(Context context, final List<String> list, boolean isDelete, final PhotoConfigure photoConfigure) {
-        mList = list;
-        photoConfigure.setList((ArrayList<String>) mList);
-        if (photoConfigure.isSingle()) {
-            photoConfigure.setNum(1);
-        }
-        grapeGridAdapter = new PostArticleImgAdapter(context, mList, isDelete, photoConfigure.getNum(), photoConfigure);
-        initRecyclerView(isCanDrag);
-    }
-
-    /**
-     * @deprecated 已废弃，建议使用setWatchImg
-     */
-    public void setOnMyItemClickListener(Context context, final List<String> list, final int type) {
-        setWatchImg(context, list, type);
-    }
-
-    /**
-     * @deprecated 已废弃，建议使用setEditImg
-     */
-    public void setOnMyItemClickListener2(Context context, final List<String> list, boolean isDelete, final PhotoConfigure photoConfigure) {
-        setEditImg(context, list, isDelete, photoConfigure);
-    }
-
-    /**
-     * 获取添加移除后的数据
-     *
-     * @return
-     */
-    public List<String> getSelectList() {
-        for (int i = 0; i < mList.size(); i++) {
-            if (mList.get(i).equals("add")) {
-                mList.remove(i);
-                break;
+    public void show(PhotoConfigure photoConfigure) {
+        this.photoConfigure = photoConfigure;
+        grapeGridAdapter = new PostArticleImgAdapter(getContext(), this, photoConfigure);
+        if (photoConfigure.getType() == PhotoConfigure.WatchImg) {
+            initRecyclerView(false);
+        } else if (photoConfigure.getType() == PhotoConfigure.EditImg) {
+            if (tv_delete != null) {
+                tv_delete.setGravity(Gravity.CENTER);
+                tv_delete.setTextColor(Color.WHITE);
+                tv_delete.setTextSize(14f);
+                tv_delete.setAlpha(0.9f);
+                tv_delete.setPadding(320, 0, 320, 0);
             }
+            initRecyclerView(photoConfigure.isCanDrag());
         }
-        return mList;
-    }
-
-    /**
-     * 获取添加移除后的数据(带add)
-     *
-     * @return
-     */
-    public List<String> getSelectList2() {
-        return mList;
     }
 
     /**
      * 初始化显示界面
      */
     private void initRecyclerView(boolean isMcanDrag) {
+        this.setClipChildren(false);
+        this.setClipToPadding(false);
         this.setOverScrollMode(OVER_SCROLL_NEVER);
         this.setFadingEdgeLength(0);
         this.setHasFixedSize(true);
         this.setNestedScrollingEnabled(false);
         this.addItemDecoration(new MyItemDecoration());
         // this.setLayoutManager(new StaggeredGridLayoutManager(colnum, StaggeredGridLayoutManager.VERTICAL));
-        this.setLayoutManager(new GridLayoutManager(getContext(), colnum));
-        grapeGridAdapter.setColnum(colnum);
-        if (onUpdateData != null) {
-            grapeGridAdapter.setOnUpdateData(onUpdateData);
-        }
+        this.setLayoutManager(new MyGridLayoutManager(getContext(), photoConfigure.getColnum()));
         setAdapter(grapeGridAdapter);
-
-        MyCallBack myCallBack = new MyCallBack(grapeGridAdapter, mList, this);
+        MyCallBack myCallBack = new MyCallBack(grapeGridAdapter, photoConfigure.getList(), this);
         itemTouchHelper = new ItemTouchHelper(myCallBack);
         itemTouchHelper.attachToRecyclerView(this);//绑定RecyclerView
         if (isMcanDrag) {
@@ -223,70 +120,79 @@ public class CyfRecyclerView extends RecyclerView {
 
                 @Override
                 public void onItemLongClick(ViewHolder vh) {
-                    if (isCanDrag) {
+                    if (photoConfigure.isCanDrag()) {
                         //如果item不是最后一个，则执行拖拽
-                        if (!mList.get(vh.getLayoutPosition()).equals("add")) {
+                        if (!photoConfigure.getList().get(vh.getLayoutPosition()).equals("add")) {
                             ((Vibrator) getContext().getSystemService(Service.VIBRATOR_SERVICE)).vibrate(70);
                             itemTouchHelper.startDrag(vh);
                         }
                     }
                 }
             });
-            if (dragListener != null) {
-                myCallBack.setDragListener(dragListener);
-            } else {
-                myCallBack.setCanDelete(tv_delete != null);
-                myCallBack.setDragListener(new MyCallBack.DragListener() {
-                    @Override
-                    public void deleteState(boolean delete) {
-                        if (tv_delete != null) {
-                            if (delete) {
-                                Drawable drawable = getResources().getDrawable(
-                                        R.mipmap.an4);
-                                tv_delete.setCompoundDrawablesWithIntrinsicBounds(null, null, drawable, null);
-                                tv_delete.setBackgroundResource(android.R.color.holo_red_dark);
-                                tv_delete.setText("松手即可删除");
-                                tv_delete.setGravity(Gravity.CENTER);
-                            } else {
-                                Drawable drawable = getResources().getDrawable(
-                                        R.mipmap.an2);
-                                tv_delete.setCompoundDrawablesWithIntrinsicBounds(null, null, drawable, null);
-                                tv_delete.setText("拖到此处删除");
-                                tv_delete.setBackgroundResource(android.R.color.holo_red_light);
-                                tv_delete.setGravity(Gravity.CENTER);
-                            }
+            myCallBack.setCanDelete(tv_delete != null);
+            myCallBack.setDragListener(new MyCallBack.DragListener() {
+                @Override
+                public void deleteState(boolean delete) {
+                    if (tv_delete != null) {
+                        if (delete) {
+                            Drawable drawable = getResources().getDrawable(
+                                    R.mipmap.an4);
+                            tv_delete.setCompoundDrawablesWithIntrinsicBounds(null, null, drawable, null);
+                            tv_delete.setBackgroundResource(android.R.color.holo_red_dark);
+                            tv_delete.setText("松手即可删除");
+                            tv_delete.setGravity(Gravity.CENTER);
+                        } else {
+                            Drawable drawable = getResources().getDrawable(
+                                    R.mipmap.an2);
+                            tv_delete.setCompoundDrawablesWithIntrinsicBounds(null, null, drawable, null);
+                            tv_delete.setText("拖到此处删除");
+                            tv_delete.setBackgroundResource(android.R.color.holo_red_light);
+                            tv_delete.setGravity(Gravity.CENTER);
                         }
                     }
+                }
 
-                    @Override
-                    public void dragState(boolean start) {
-                        if (tv_delete != null) {
-                            if (start) {
-                                tv_delete.setVisibility(VISIBLE);
-                            } else {
-                                tv_delete.setVisibility(GONE);
-                            }
+                @Override
+                public void dragState(boolean start) {
+                    if (tv_delete != null) {
+                        if (start) {
+                            tv_delete.setVisibility(VISIBLE);
+                        } else {
+                            tv_delete.setVisibility(GONE);
                         }
                     }
+                }
 
-                    @Override
-                    public void clearView() {
+                @Override
+                public void clearView() {
 
-                    }
-                }, tv_delete);
-            }
+                }
+            }, tv_delete);
         }
     }
 
-    class MyItemDecoration extends RecyclerView.ItemDecoration {
-        /**
-         * * @param outRect 边界 * @param view recyclerView ItemView * @param parent recyclerView * @param state recycler 内部数据管理
-         */
-        @Override
-        public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
-            //设定底部边距为1px
-            outRect.set(4, 4, 4, 4);
+    public interface OnCyfItemClick{
+        void onClick(int index);
+    }
+
+    // 获取添加移除后的数据(带add)
+    public List<String> getSelectList2() {
+        return photoConfigure.getList();
+    }
+
+    /**
+     * 获取添加移除后的真实原始数据
+     *
+     * @return
+     */
+    public List<String> getSelectList() {
+        for (int i = 0; i < photoConfigure.getList().size(); i++) {
+            if (photoConfigure.getList().get(i).equals("add")) {
+                photoConfigure.getList().remove(i);
+                break;
+            }
         }
+        return photoConfigure.getList();
     }
 
 }
