@@ -469,7 +469,7 @@ public class PhotoPreviewActivity extends PhotoBaseActivity {
                         }
                     });
                     String filePath = selectedList.get(i);
-                    SDCardImageLoader.setImg(this, filePath, iv);
+                    SDCardImageLoader.setImgThumbnail(this, filePath, iv);
                     if (stringList.get(mIndex).equals(selectedList.get(i))) {
                         findViewById(R.id.horizontalScrollView).post(new Runnable() {
                             @Override

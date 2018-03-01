@@ -4,6 +4,7 @@ import android.app.Service;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.os.Vibrator;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
@@ -15,6 +16,7 @@ import android.widget.TextView;
 import com.cyf.cyfimageselector.R;
 import com.cyf.cyfimageselector.model.PhotoConfigure;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -25,7 +27,7 @@ public class CyfRecyclerView extends RecyclerView {
 
     private PhotoConfigure photoConfigure;
     private TextView tv_delete = null;// 删除文字item，针对编辑添加有效
-    private OnCyfItemClick listener = null;// 缩略图点击事件
+    private OnCyfItemClickListener listener = null;// 缩略图点击事件
     private PostArticleImgAdapter.OnUpdateData onUpdateData;// 监听视图更新，针对编辑添加有效
 
     private PostArticleImgAdapter grapeGridAdapter;
@@ -54,7 +56,7 @@ public class CyfRecyclerView extends RecyclerView {
         }
     }
 
-    public CyfRecyclerView setListener(OnCyfItemClick listener) {
+    public CyfRecyclerView setListener(OnCyfItemClickListener listener) {
         this.listener = listener;
         return this;
     }
@@ -69,7 +71,7 @@ public class CyfRecyclerView extends RecyclerView {
         return this;
     }
 
-    public OnCyfItemClick getListener() {
+    public OnCyfItemClickListener getListener() {
         return listener;
     }
 
@@ -171,8 +173,28 @@ public class CyfRecyclerView extends RecyclerView {
         }
     }
 
-    public interface OnCyfItemClick{
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        if(photoConfigure.isAutoDelThm()){
+            clearThumbnailsList();
+        }
+    }
+
+    /**
+     * item点击事件监听
+     */
+    public interface OnCyfItemClickListener {
         void onClick(int index);
+    }
+
+    /**
+     * 生成缩略图的数据的监听
+     */
+    public interface OnCyfThumbnailsListener {
+        void onStart();
+
+        void onEnd(List<String> list, List<String> thumbnailsList);
     }
 
     // 获取添加移除后的数据(带add)
@@ -193,6 +215,56 @@ public class CyfRecyclerView extends RecyclerView {
             }
         }
         return photoConfigure.getList();
+    }
+
+    /**
+     * 获取添加移除后的真实压缩数据
+     * 配合clearThumbnailsList方法使用
+     *
+     * @return
+     */
+    public void getSelectThumbnailsList(final OnCyfThumbnailsListener listener) {
+        new AsyncTask<String, Void, String>() {
+
+            List<String> list;
+            List<String> thumbnailsList;
+
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+                listener.onStart();
+                list = getSelectList();
+                thumbnailsList = new ArrayList<>();
+            }
+
+            @Override
+            protected String doInBackground(String... strings) {
+                // 生成缩略图文件夹
+                String filesName = CyfRecyclerView.this.getContext().getPackageName();//文件夹名称
+                // https://www.jianshu.com/p/9465170d6806
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(String s) {
+                super.onPostExecute(s);
+                listener.onEnd(list, thumbnailsList);
+            }
+        }.execute();
+    }
+
+    /**
+     * 清除生成的缩略图
+     */
+    public void clearThumbnailsList() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                String filesName = CyfRecyclerView.this.getContext().getPackageName();//文件夹名称
+                // 删除缩略图文件夹
+
+            }
+        }).start();
     }
 
 }

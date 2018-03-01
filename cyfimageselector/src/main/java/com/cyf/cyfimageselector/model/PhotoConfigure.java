@@ -26,6 +26,7 @@ public class PhotoConfigure implements Serializable {
     private boolean isStartWithCamera = false;// 是否直接打开相机，针对编辑添加有效
     private boolean isDelete = true;// 是否带右上角删除按钮，针对编辑添加有效
     private boolean isCanDrag = false;// 是否可以拖拽，针对编辑添加有效
+    private boolean isAutoDelThm = true;// 是否自动删除生成的缩略图，针对编辑添加有效
 
     public PhotoConfigure() {
         super();
@@ -127,6 +128,14 @@ public class PhotoConfigure implements Serializable {
         isCanDrag = canDrag;
     }
 
+    public boolean isAutoDelThm() {
+        return isAutoDelThm;
+    }
+
+    public void setAutoDelThm(boolean autoDelThm) {
+        isAutoDelThm = autoDelThm;
+    }
+
     @Override
     public String toString() {
         return "PhotoConfigure{" +
@@ -141,6 +150,7 @@ public class PhotoConfigure implements Serializable {
                 ", isStartWithCamera=" + isStartWithCamera +
                 ", isDelete=" + isDelete +
                 ", isCanDrag=" + isCanDrag +
+                ", isAutoDelThm=" + isAutoDelThm +
                 '}';
     }
 }
