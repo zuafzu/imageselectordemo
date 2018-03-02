@@ -27,6 +27,7 @@ public class PhotoConfigure implements Serializable {
     private boolean isDelete = true;// 是否带右上角删除按钮，针对编辑添加有效
     private boolean isCanDrag = false;// 是否可以拖拽，针对编辑添加有效
     private boolean isAutoDelThm = true;// 是否自动删除生成的缩略图，针对编辑添加有效
+    private boolean isOriginalShow = false;// 判断原始图开关是否显示，针对编辑添加有效
 
     public PhotoConfigure() {
         super();
@@ -44,96 +45,117 @@ public class PhotoConfigure implements Serializable {
         return type;
     }
 
-    public void setType(int type) {
-        this.type = type;
-    }
-
     public ArrayList<String> getList() {
         return list;
-    }
-
-    public void setList(ArrayList<String> list) {
-        this.list = list;
-    }
-
-    public boolean isClick() {
-        return isClick;
-    }
-
-    public void setClick(boolean click) {
-        isClick = click;
     }
 
     public int getColnum() {
         return colnum;
     }
 
-    public void setColnum(int colnum) {
-        this.colnum = colnum;
-    }
-
     public boolean isSave() {
         return isSave;
     }
 
-    public void setSave(boolean save) {
-        isSave = save;
+    public boolean isClick() {
+        return isClick;
     }
 
     public boolean isSingle() {
         return isSingle;
     }
 
-    public void setSingle(boolean single) {
-        isSingle = single;
-    }
-
     public boolean isCamera() {
         return isCamera;
-    }
-
-    public void setCamera(boolean camera) {
-        isCamera = camera;
     }
 
     public int getNum() {
         return num;
     }
 
-    public void setNum(int num) {
-        this.num = num;
-    }
-
     public boolean isStartWithCamera() {
         return isStartWithCamera;
-    }
-
-    public void setStartWithCamera(boolean startWithCamera) {
-        isStartWithCamera = startWithCamera;
     }
 
     public boolean isDelete() {
         return isDelete;
     }
 
-    public void setDelete(boolean delete) {
-        isDelete = delete;
-    }
-
     public boolean isCanDrag() {
         return isCanDrag;
-    }
-
-    public void setCanDrag(boolean canDrag) {
-        isCanDrag = canDrag;
     }
 
     public boolean isAutoDelThm() {
         return isAutoDelThm;
     }
 
-    public void setAutoDelThm(boolean autoDelThm) {
+    public boolean isOriginalShow() {
+        return isOriginalShow;
+    }
+
+    public PhotoConfigure setType(int type) {
+        this.type = type;
+        return this;
+    }
+
+    public PhotoConfigure setList(ArrayList<String> list) {
+        this.list = list;
+        return this;
+    }
+
+    public PhotoConfigure setColnum(int colnum) {
+        this.colnum = colnum;
+        return this;
+    }
+
+    public PhotoConfigure setSave(boolean save) {
+        isSave = save;
+        return this;
+    }
+
+    public PhotoConfigure setClick(boolean click) {
+        isClick = click;
+        return this;
+    }
+
+    public PhotoConfigure setSingle(boolean single) {
+        isSingle = single;
+        return this;
+    }
+
+    public PhotoConfigure setCamera(boolean camera) {
+        isCamera = camera;
+        return this;
+    }
+
+    public PhotoConfigure setNum(int num) {
+        this.num = num;
+        return this;
+    }
+
+    public PhotoConfigure setStartWithCamera(boolean startWithCamera) {
+        isStartWithCamera = startWithCamera;
+        return this;
+    }
+
+    public PhotoConfigure setDelete(boolean delete) {
+        isDelete = delete;
+        return this;
+    }
+
+    public PhotoConfigure setCanDrag(boolean canDrag) {
+        isCanDrag = canDrag;
+        return this;
+    }
+
+    public PhotoConfigure setAutoDelThm(boolean autoDelThm) {
         isAutoDelThm = autoDelThm;
+        return this;
+    }
+
+    public PhotoConfigure setOriginalShow(boolean originalShow) {
+        isOriginalShow = originalShow;
+        return this;
     }
 
     @Override
@@ -151,6 +173,7 @@ public class PhotoConfigure implements Serializable {
                 ", isDelete=" + isDelete +
                 ", isCanDrag=" + isCanDrag +
                 ", isAutoDelThm=" + isAutoDelThm +
+                ", isOriginalShow=" + isOriginalShow +
                 '}';
     }
 }

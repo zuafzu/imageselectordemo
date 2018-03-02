@@ -32,6 +32,7 @@ import com.cyf.cyfimageselector.GlideApp;
 import com.cyf.cyfimageselector.R;
 import com.cyf.cyfimageselector.base.PhotoBaseActivity;
 import com.cyf.cyfimageselector.pinchimage.PinchImageView;
+import com.cyf.cyfimageselector.recycler.CyfRecyclerView;
 import com.cyf.cyfimageselector.utils.SDCardImageLoader;
 import com.cyf.cyfimageselector.utils.ScreenUtils;
 import com.cyf.cyfimageselector.utils.Utility;
@@ -60,6 +61,7 @@ public class PhotoPreviewActivity extends PhotoBaseActivity {
     private LinearLayout ll_action;
     private LinkedList<View> gestureImageViewList;
     private CheckBox checkbox;
+    private CheckBox checkbox2;
     private List<String> strCheckBoxList;//0未选中，1选中
     private List<String> stringList;
     private List<String> stringList2;
@@ -132,6 +134,7 @@ public class PhotoPreviewActivity extends PhotoBaseActivity {
             ll_action = (LinearLayout) findViewById(R.id.ll_action);
             ll_action.setVisibility(View.GONE);
             checkbox = findViewById(R.id.checkbox);
+            checkbox2 = findViewById(R.id.checkbox2);
             tv_toolsbar_title = (TextView) findViewById(R.id.tv_toolsbar_title);
             tv_toolsbar_left = (TextView) findViewById(R.id.tv_toolsbar_left);
             tv_toolsbar_left.setVisibility(View.VISIBLE);
@@ -159,6 +162,18 @@ public class PhotoPreviewActivity extends PhotoBaseActivity {
                 ll_action.setVisibility(View.VISIBLE);
                 checkbox.setVisibility(View.VISIBLE);
                 tv_toolsbar_right.setVisibility(View.VISIBLE);
+                if (CyfRecyclerView.isOriginalShow && CyfRecyclerView.onCyfThumbnailsListener != null) {
+                    checkbox2.setVisibility(View.VISIBLE);
+                    checkbox2.setChecked(CyfRecyclerView.isOriginalDrawing);
+                    checkbox2.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                        @Override
+                        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                            CyfRecyclerView.isOriginalDrawing = b;
+                        }
+                    });
+                } else {
+                    checkbox2.setVisibility(View.GONE);
+                }
                 if (stringList2 != null) {
                     if (stringList2.size() > 0) {
                         tv_toolsbar_right.setText("完成(" + stringList2.size() + "/" + num + ")");

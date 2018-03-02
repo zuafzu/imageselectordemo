@@ -120,6 +120,7 @@ public class PostArticleImgAdapter extends RecyclerView.Adapter<PostArticleImgAd
                 @Override
                 public void onClick(View view) {
                     if (photoConfigure.getList().size() == 0 ||
+                            photoConfigure.getList().size() == holder.getAdapterPosition() ||
                             photoConfigure.getList().get(holder.getAdapterPosition()).equals("add")) {
                         for (int j = 0; j < photoConfigure.getList().size(); j++) {
                             if (photoConfigure.getList().get(j).equals("add")) {

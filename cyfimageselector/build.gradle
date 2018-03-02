@@ -29,4 +29,6 @@ dependencies {
     compile 'com.github.bumptech.glide:glide:4.2.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.2.0'
     implementation 'com.android.support:recyclerview-v7:27.0.2'
+    // 压缩图片
+    compile 'top.zibin:Luban:1.1.3'
 }

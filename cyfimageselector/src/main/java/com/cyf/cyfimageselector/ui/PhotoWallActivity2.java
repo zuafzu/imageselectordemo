@@ -40,6 +40,7 @@ import com.cyf.cyfimageselector.adapter.PhotoAlbumLVAdapter;
 import com.cyf.cyfimageselector.base.PhotoBaseActivity;
 import com.cyf.cyfimageselector.model.PhotoAlbumLVItem;
 import com.cyf.cyfimageselector.model.PhotoConfigure;
+import com.cyf.cyfimageselector.recycler.CyfRecyclerView;
 import com.cyf.cyfimageselector.utils.PermissionsChecker;
 import com.cyf.cyfimageselector.utils.SDCardImageLoader;
 import com.cyf.cyfimageselector.utils.ScreenUtils;
@@ -65,6 +66,7 @@ public class PhotoWallActivity2 extends PhotoBaseActivity {
     public static PhotoWallActivity2 activity = null;
 
     private ListView listView;
+    private CheckBox checkbox;
     private Button btn_look;
     private LinearLayout ll_file;
     private TextView tv_file;
@@ -172,6 +174,18 @@ public class PhotoWallActivity2 extends PhotoBaseActivity {
             } else {
                 btn_sure.setText("完成");
             }
+        }
+        if (CyfRecyclerView.isOriginalShow && CyfRecyclerView.onCyfThumbnailsListener != null) {
+            checkbox.setVisibility(View.VISIBLE);
+            checkbox.setChecked(CyfRecyclerView.isOriginalDrawing);
+            checkbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                    CyfRecyclerView.isOriginalDrawing = b;
+                }
+            });
+        } else {
+            checkbox.setVisibility(View.GONE);
         }
     }
 
@@ -287,6 +301,7 @@ public class PhotoWallActivity2 extends PhotoBaseActivity {
                 }
             }
         });
+        checkbox = findViewById(R.id.checkbox);
     }
 
     private void initGridView() {
@@ -491,6 +506,9 @@ public class PhotoWallActivity2 extends PhotoBaseActivity {
      * 使用ContentProvider读取SD卡最近图片。
      */
     private ArrayList<String> getLatestImagePaths(int maxCount) {
+        File appDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM) + "/" + getPackageName());
+        String thmPath = appDir.getAbsolutePath();
+
         Uri mImageUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
         String key_MIME_TYPE = MediaStore.Images.Media.MIME_TYPE;
         String key_DATA = MediaStore.Images.Media.DATA;
@@ -511,7 +529,10 @@ public class PhotoWallActivity2 extends PhotoBaseActivity {
                     // 获取图片的路径
                     String path = cursor.getString(0);
                     if (checkImgPath(path)) {
-                        latestImagePaths.add(path);
+                        // 不扫描压缩路径
+                        if (!path.contains(thmPath)) {
+                            latestImagePaths.add(path);
+                        }
                     }
                     if (latestImagePaths.size() >= maxCount || !cursor.moveToPrevious()) {
                         break;
@@ -523,7 +544,7 @@ public class PhotoWallActivity2 extends PhotoBaseActivity {
         return latestImagePaths;
     }
 
-    //获取已选择的图片路径
+    // 获取已选择的图片路径
     private ArrayList<String> getSelectImagePaths() {
         list_selected = adapter.getSelectionMap();
         return list_selected;
@@ -632,6 +653,9 @@ public class PhotoWallActivity2 extends PhotoBaseActivity {
      * 使用ContentProvider读取SD卡所有图片。
      */
     private ArrayList<PhotoAlbumLVItem> getImagePathsByContentProvider() {
+        File appDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM) + "/" + getPackageName());
+        String thmPath = appDir.getAbsolutePath();
+
         Uri mImageUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
 
         String key_MIME_TYPE = MediaStore.Images.Media.MIME_TYPE;
@@ -659,11 +683,14 @@ public class PhotoWallActivity2 extends PhotoBaseActivity {
                     File parentFile = new File(imagePath).getParentFile();
                     String parentPath = parentFile.getAbsolutePath();
 
-                    //不扫描重复路径
+                    // 不扫描重复路径
                     if (!cachePath.contains(parentPath)) {
                         if (checkImgPath(getFirstImagePath(parentFile))) {
-                            list.add(new PhotoAlbumLVItem(parentPath, getImageCount(parentFile),
-                                    getFirstImagePath(parentFile)));
+                            // 不扫描压缩路径
+                            if (!thmPath.equals(parentPath)) {
+                                list.add(new PhotoAlbumLVItem(parentPath, getImageCount(parentFile),
+                                        getFirstImagePath(parentFile)));
+                            }
                         }
                         cachePath.add(parentPath);
                     }

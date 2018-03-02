@@ -4,7 +4,7 @@ import android.app.Service;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
-import android.os.AsyncTask;
+import android.os.Environment;
 import android.os.Vibrator;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
@@ -12,12 +12,17 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.cyf.cyfimageselector.R;
 import com.cyf.cyfimageselector.model.PhotoConfigure;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import top.zibin.luban.Luban;
+import top.zibin.luban.OnCompressListener;
 
 /**
  * Created by caoyingfu on 2018/2/26.
@@ -30,8 +35,14 @@ public class CyfRecyclerView extends RecyclerView {
     private OnCyfItemClickListener listener = null;// 缩略图点击事件
     private PostArticleImgAdapter.OnUpdateData onUpdateData;// 监听视图更新，针对编辑添加有效
 
+    public static OnCyfThumbnailsListener onCyfThumbnailsListener;// 生成缩略图的监听
+    public static boolean isOriginalShow = false;// 判断原始图开关是否显示
+    public static boolean isOriginalDrawing = true;// 判断是否是原始图
+
     private PostArticleImgAdapter grapeGridAdapter;
     private ItemTouchHelper itemTouchHelper;
+
+    private List<String> thumbnailsList = new ArrayList<>();
 
     public CyfRecyclerView(Context context) {
         super(context);
@@ -54,6 +65,11 @@ public class CyfRecyclerView extends RecyclerView {
                     Integer.MAX_VALUE >> 2, MeasureSpec.AT_MOST);
             super.onMeasure(widthMeasureSpec, expandSpec);
         }
+    }
+
+    public CyfRecyclerView setOnCyfThumbnailsListener(OnCyfThumbnailsListener onCyfThumbnailsListener) {
+        this.onCyfThumbnailsListener = onCyfThumbnailsListener;
+        return this;
     }
 
     public CyfRecyclerView setListener(OnCyfItemClickListener listener) {
@@ -104,6 +120,14 @@ public class CyfRecyclerView extends RecyclerView {
      * 初始化显示界面
      */
     private void initRecyclerView(boolean isMcanDrag) {
+        // 缩略图监听为空isOriginalDrawing=true
+        if (onCyfThumbnailsListener != null) {
+            isOriginalDrawing = false;
+        } else {
+            isOriginalDrawing = true;
+        }
+        isOriginalShow = photoConfigure.isOriginalShow();
+
         this.setClipChildren(false);
         this.setClipToPadding(false);
         this.setOverScrollMode(OVER_SCROLL_NEVER);
@@ -113,6 +137,7 @@ public class CyfRecyclerView extends RecyclerView {
         this.addItemDecoration(new MyItemDecoration());
         // this.setLayoutManager(new StaggeredGridLayoutManager(colnum, StaggeredGridLayoutManager.VERTICAL));
         this.setLayoutManager(new MyGridLayoutManager(getContext(), photoConfigure.getColnum()));
+
         setAdapter(grapeGridAdapter);
         MyCallBack myCallBack = new MyCallBack(grapeGridAdapter, photoConfigure.getList(), this);
         itemTouchHelper = new ItemTouchHelper(myCallBack);
@@ -176,7 +201,10 @@ public class CyfRecyclerView extends RecyclerView {
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        if(photoConfigure.isAutoDelThm()){
+        onCyfThumbnailsListener = null;
+        isOriginalShow = false;
+        isOriginalDrawing = true;
+        if (photoConfigure.isAutoDelThm()) {
             clearThumbnailsList();
         }
     }
@@ -194,7 +222,51 @@ public class CyfRecyclerView extends RecyclerView {
     public interface OnCyfThumbnailsListener {
         void onStart();
 
-        void onEnd(List<String> list, List<String> thumbnailsList);
+        void onError(Throwable e);
+
+        void onEnd(List<String> list, List<String> thumbnailsList, boolean isOriginalDrawing);
+    }
+
+    private void thumbnailsImg(final OnCyfThumbnailsListener listener) {
+        if (getSelectList().size() == 0) {
+            Toast.makeText(getContext(), "请先选择图片", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String filesName = CyfRecyclerView.this.getContext().getPackageName();//文件夹名称
+        File appDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM) + "/" + filesName);
+        if (!appDir.exists()) {
+            appDir.mkdir();
+        }
+        Luban.with(getContext()).
+                load(new File(getSelectList().get(thumbnailsList.size()))) //传人要压缩的图片
+                .setTargetDir(appDir.getAbsolutePath())
+                .setCompressListener(new OnCompressListener() {
+                    //设置回调
+                    @Override
+                    public void onStart() {
+                        if (thumbnailsList.size() == 0) {
+                            listener.onStart();
+                        }
+                    }
+
+                    @Override
+                    public void onSuccess(File file) {
+                        thumbnailsList.add(file.getAbsolutePath());
+                        if (thumbnailsList.size() == getSelectList().size()) {
+                            listener.onEnd(getSelectList(), thumbnailsList, isOriginalDrawing);
+                            // 恢复显示数据的加号
+                            grapeGridAdapter.setmList();
+                        } else {
+                            thumbnailsImg(listener);
+                        }
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        thumbnailsList.clear();
+                        listener.onError(e);
+                    }
+                }).launch(); //启动压缩
     }
 
     // 获取添加移除后的数据(带add)
@@ -223,34 +295,11 @@ public class CyfRecyclerView extends RecyclerView {
      *
      * @return
      */
-    public void getSelectThumbnailsList(final OnCyfThumbnailsListener listener) {
-        new AsyncTask<String, Void, String>() {
-
-            List<String> list;
-            List<String> thumbnailsList;
-
-            @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
-                listener.onStart();
-                list = getSelectList();
-                thumbnailsList = new ArrayList<>();
-            }
-
-            @Override
-            protected String doInBackground(String... strings) {
-                // 生成缩略图文件夹
-                String filesName = CyfRecyclerView.this.getContext().getPackageName();//文件夹名称
-                // https://www.jianshu.com/p/9465170d6806
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(String s) {
-                super.onPostExecute(s);
-                listener.onEnd(list, thumbnailsList);
-            }
-        }.execute();
+    public void getSelectThumbnailsList() {
+        thumbnailsList.clear();
+        if (onCyfThumbnailsListener != null) {
+            thumbnailsImg(onCyfThumbnailsListener);
+        }
     }
 
     /**
@@ -261,10 +310,22 @@ public class CyfRecyclerView extends RecyclerView {
             @Override
             public void run() {
                 String filesName = CyfRecyclerView.this.getContext().getPackageName();//文件夹名称
-                // 删除缩略图文件夹
-
+                File appDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM) + "/" + filesName);
+                deleteDirWihtFile(appDir);
             }
         }).start();
+    }
+
+    private static void deleteDirWihtFile(File dir) {
+        if (dir == null || !dir.exists() || !dir.isDirectory())
+            return;
+        for (File file : dir.listFiles()) {
+            if (file.isFile())
+                file.delete(); // 删除所有文件
+            else if (file.isDirectory())
+                deleteDirWihtFile(file); // 递规的方式删除文件夹
+        }
+        dir.delete();// 删除目录本身
     }
 
 }

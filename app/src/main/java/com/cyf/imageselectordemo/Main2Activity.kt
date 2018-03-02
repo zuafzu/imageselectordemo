@@ -1,8 +1,8 @@
 package com.cyf.imageselectordemo
 
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import java.util.ArrayList
+import android.support.v7.app.AppCompatActivity
+import java.util.*
 
 class Main2Activity : AppCompatActivity() {
 
@@ -19,5 +19,15 @@ class Main2Activity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main2)
+
+        // 查看
+//        config.type = PhotoConfigure.WatchImg
+//        config.list = list
+//        config.colnum = 3
+//        config.isClick = true
+//        config.isSave = false
+//        recyclerView.setListener {
+//            Toast.makeText(this@MainActivity, list[it], Toast.LENGTH_SHORT).show()
+//        }.show(config)
     }
 }
