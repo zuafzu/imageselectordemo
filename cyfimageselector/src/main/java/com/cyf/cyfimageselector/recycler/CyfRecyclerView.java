@@ -39,6 +39,8 @@ public class CyfRecyclerView extends RecyclerView {
     public static boolean isOriginalShow = false;// 判断原始图开关是否显示
     public static boolean isOriginalDrawing = true;// 判断是否是原始图
 
+    public static RecycledViewPool recycledViewPool = null;
+
     private PostArticleImgAdapter grapeGridAdapter;
     private ItemTouchHelper itemTouchHelper;
 
@@ -58,7 +60,7 @@ public class CyfRecyclerView extends RecyclerView {
 
     @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        if (photoConfigure.isCanDrag()) {
+        if (photoConfigure == null || photoConfigure.isCanDrag()) {
             super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         } else {
             int expandSpec = MeasureSpec.makeMeasureSpec(
@@ -120,24 +122,23 @@ public class CyfRecyclerView extends RecyclerView {
      * 初始化显示界面
      */
     private void initRecyclerView(boolean isMcanDrag) {
-        // 缩略图监听为空isOriginalDrawing=true
-        if (onCyfThumbnailsListener != null) {
-            isOriginalDrawing = false;
-        } else {
-            isOriginalDrawing = true;
+        if (this.getAdapter() == null) {
+            // 缩略图监听为空isOriginalDrawing=true
+            isOriginalDrawing = onCyfThumbnailsListener == null;
+            isOriginalShow = photoConfigure.isOriginalShow();
+
+            this.setClipChildren(false);
+            this.setClipToPadding(false);
+            this.setOverScrollMode(OVER_SCROLL_NEVER);
+            this.setFadingEdgeLength(0);
+            this.setHasFixedSize(true);
+            this.setNestedScrollingEnabled(false);
+            this.addItemDecoration(new MyItemDecoration());
+            // this.setLayoutManager(new StaggeredGridLayoutManager(colnum, StaggeredGridLayoutManager.VERTICAL));
+            this.setLayoutManager(new MyGridLayoutManager(getContext(), photoConfigure.getColnum()));
+            recycledViewPool = new RecycledViewPool();
+            this.setRecycledViewPool(recycledViewPool);
         }
-        isOriginalShow = photoConfigure.isOriginalShow();
-
-        this.setClipChildren(false);
-        this.setClipToPadding(false);
-        this.setOverScrollMode(OVER_SCROLL_NEVER);
-        this.setFadingEdgeLength(0);
-        this.setHasFixedSize(true);
-        this.setNestedScrollingEnabled(false);
-        this.addItemDecoration(new MyItemDecoration());
-        // this.setLayoutManager(new StaggeredGridLayoutManager(colnum, StaggeredGridLayoutManager.VERTICAL));
-        this.setLayoutManager(new MyGridLayoutManager(getContext(), photoConfigure.getColnum()));
-
         setAdapter(grapeGridAdapter);
         MyCallBack myCallBack = new MyCallBack(grapeGridAdapter, photoConfigure.getList(), this);
         itemTouchHelper = new ItemTouchHelper(myCallBack);
@@ -202,6 +203,7 @@ public class CyfRecyclerView extends RecyclerView {
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         onCyfThumbnailsListener = null;
+        recycledViewPool = null;
         isOriginalShow = false;
         isOriginalDrawing = true;
         if (photoConfigure.isAutoDelThm()) {
