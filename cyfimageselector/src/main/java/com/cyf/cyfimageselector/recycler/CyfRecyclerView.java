@@ -136,7 +136,9 @@ public class CyfRecyclerView extends RecyclerView {
             this.addItemDecoration(new MyItemDecoration());
             // this.setLayoutManager(new StaggeredGridLayoutManager(colnum, StaggeredGridLayoutManager.VERTICAL));
             this.setLayoutManager(new MyGridLayoutManager(getContext(), photoConfigure.getColnum()));
-            recycledViewPool = new RecycledViewPool();
+            if (recycledViewPool == null) {
+                recycledViewPool = new RecycledViewPool();
+            }
             this.setRecycledViewPool(recycledViewPool);
         }
         setAdapter(grapeGridAdapter);
