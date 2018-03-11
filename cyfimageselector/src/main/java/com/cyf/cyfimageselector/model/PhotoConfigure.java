@@ -11,6 +11,7 @@ public class PhotoConfigure implements Serializable {
 
     public final static int WatchImg = 0;// 查看模式
     public final static int EditImg = 1;// 编辑模式
+    public static final int autoColNum = -1;//根据图片数量判断一行显示几个图片
 
     private int type = 0;//查看模式or编辑模式
 

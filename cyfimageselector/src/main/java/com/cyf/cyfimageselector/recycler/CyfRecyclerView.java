@@ -5,11 +5,13 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.Vibrator;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -134,12 +136,23 @@ public class CyfRecyclerView extends RecyclerView {
             this.setHasFixedSize(true);
             this.setNestedScrollingEnabled(false);
             this.addItemDecoration(new MyItemDecoration());
-            // this.setLayoutManager(new StaggeredGridLayoutManager(colnum, StaggeredGridLayoutManager.VERTICAL));
-            this.setLayoutManager(new MyGridLayoutManager(getContext(), photoConfigure.getColnum()));
             if (recycledViewPool == null) {
                 recycledViewPool = new RecycledViewPool();
             }
             this.setRecycledViewPool(recycledViewPool);
+        }
+        // this.setLayoutManager(new StaggeredGridLayoutManager(colnum, StaggeredGridLayoutManager.VERTICAL));
+        if (photoConfigure.getType() == PhotoConfigure.EditImg ||
+                (photoConfigure.getType() == PhotoConfigure.WatchImg && PhotoConfigure.autoColNum != photoConfigure.getColnum())) {
+            this.setLayoutManager(new MyGridLayoutManager(getContext(), photoConfigure.getColnum()));
+        } else {
+            if (photoConfigure.getList().size() == 1) {
+                this.setLayoutManager(new MyGridLayoutManager(getContext(), 1));
+            } else if (photoConfigure.getList().size() == 2) {
+                this.setLayoutManager(new MyGridLayoutManager(getContext(), 3));
+            } else {
+                this.setLayoutManager(new MyGridLayoutManager(getContext(), 3));
+            }
         }
         setAdapter(grapeGridAdapter);
         MyCallBack myCallBack = new MyCallBack(grapeGridAdapter, photoConfigure.getList(), this);
@@ -332,5 +345,18 @@ public class CyfRecyclerView extends RecyclerView {
         dir.delete();// 删除目录本身
     }
 
+    @Override
+    public void onScrolled(int dx, int dy) {
+        if(grapeGridAdapter !=null){
+            grapeGridAdapter.setShow(false);
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    grapeGridAdapter.setShow(true);
+                }
+            },1000);
+        }
+        super.onScrolled(dx, dy);
+    }
 }
 

@@ -9,12 +9,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.cache.DiskLruCacheWrapper;
+import com.bumptech.glide.signature.EmptySignature;
 import com.cyf.cyfimageselector.R;
 import com.cyf.cyfimageselector.model.PhotoConfigure;
 import com.cyf.cyfimageselector.ui.PhotoPreviewActivity;
 import com.cyf.cyfimageselector.ui.PhotoWallActivity2;
+import com.cyf.cyfimageselector.utils.OriginalKey;
 import com.cyf.cyfimageselector.utils.SDCardImageLoader;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,11 +35,16 @@ public class PostArticleImgAdapter extends RecyclerView.Adapter<PostArticleImgAd
     private LayoutInflater mLayoutInflater;
 
     private int type = 0;// 0带保存按钮，3不带保存按钮
+    private boolean isShow = true;// 是否加载无缓存的图片
 
     public void setClick(boolean isClick) {
         if (photoConfigure != null) {
             photoConfigure.setClick(isClick);
         }
+    }
+
+    public void setShow(boolean show) {
+        isShow = show;
     }
 
     public Context getmContext() {
@@ -77,7 +87,15 @@ public class PostArticleImgAdapter extends RecyclerView.Adapter<PostArticleImgAd
         holder.view_top.setVisibility(View.GONE);
         holder.photo_wall_item_cb.setVisibility(View.GONE);
         if (photoConfigure.getType() == PhotoConfigure.WatchImg) {
-            SDCardImageLoader.setImgThumbnail(mContext, photoConfigure.getList().get(holder.getAdapterPosition()), ((ImageView) holder.photo_wall_item_photo));
+            // =========================优化卡顿==================================
+            if (loadCacheImage(mContext, photoConfigure.getList().get(holder.getAdapterPosition()))) {
+                SDCardImageLoader.setImgThumbnail(mContext, photoConfigure.getList().get(holder.getAdapterPosition()), ((ImageView) holder.photo_wall_item_photo));
+            } else {
+                if (isShow) {
+                    SDCardImageLoader.setImgThumbnail(mContext, photoConfigure.getList().get(holder.getAdapterPosition()), ((ImageView) holder.photo_wall_item_photo));
+                }
+            }
+            // ================================================================
             holder.photo_wall_item_photo.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -114,7 +132,15 @@ public class PostArticleImgAdapter extends RecyclerView.Adapter<PostArticleImgAd
                 } else {
                     holder.btn_delete.setVisibility(View.GONE);
                 }
-                SDCardImageLoader.setImgThumbnail(mContext, photoConfigure.getList().get(holder.getAdapterPosition()), ((ImageView) holder.photo_wall_item_photo));
+                // =========================优化卡顿==================================
+                if (loadCacheImage(mContext, photoConfigure.getList().get(holder.getAdapterPosition()))) {
+                    SDCardImageLoader.setImgThumbnail(mContext, photoConfigure.getList().get(holder.getAdapterPosition()), ((ImageView) holder.photo_wall_item_photo));
+                } else {
+                    if (isShow) {
+                        SDCardImageLoader.setImgThumbnail(mContext, photoConfigure.getList().get(holder.getAdapterPosition()), ((ImageView) holder.photo_wall_item_photo));
+                    }
+                }
+                // ================================================================
             }
             holder.photo_wall_item_photo.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -204,6 +230,16 @@ public class PostArticleImgAdapter extends RecyclerView.Adapter<PostArticleImgAd
 
     public interface OnUpdateData {
         void reflush(int line);
+    }
+
+    private static boolean loadCacheImage(Context context, String url) {
+        // 寻找缓存图片
+        File file = DiskLruCacheWrapper.get(Glide.getPhotoCacheDir(context), 250 * 1024 * 1024).get(new OriginalKey(url, EmptySignature.obtain()));
+        if (file != null) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
 }
