@@ -11,11 +11,13 @@ import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Gravity;
+import android.view.ViewConfiguration;
+import android.widget.AbsListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.cyf.cyfimageselector.R;
 import com.cyf.cyfimageselector.model.PhotoConfigure;
 
@@ -31,6 +33,9 @@ import top.zibin.luban.OnCompressListener;
  */
 
 public class CyfRecyclerView extends RecyclerView {
+
+    private boolean isShow = true;// 是否加载无缓存的图片
+    private AbsListView absListView;// 优化在listView中的滑动
 
     private PhotoConfigure photoConfigure;
     private TextView tv_delete = null;// 删除文字item，针对编辑添加有效
@@ -78,6 +83,33 @@ public class CyfRecyclerView extends RecyclerView {
 
     public CyfRecyclerView setListener(OnCyfItemClickListener listener) {
         this.listener = listener;
+        return this;
+    }
+
+    // 主动优化，在listView中（有待优化）
+    public CyfRecyclerView setAbsListView(AbsListView listView) {
+        this.absListView = listView;
+        if (this.absListView != null) {
+            this.absListView.setFriction(ViewConfiguration.getScrollFriction() * 2);
+            this.absListView.setOnScrollListener(new AbsListView.OnScrollListener() {
+                @Override
+                public void onScrollStateChanged(AbsListView absListView, int i) {
+                    if (i == SCROLL_STATE_FLING) {
+                        isShow = false;
+                        Glide.with(CyfRecyclerView.this).pauseRequests();
+                    } else {
+                        isShow = true;
+                        Glide.with(CyfRecyclerView.this).resumeRequests();
+                    }
+                    grapeGridAdapter.setShow(isShow);
+                }
+
+                @Override
+                public void onScroll(AbsListView absListView, int i, int i1, int i2) {
+
+                }
+            });
+        }
         return this;
     }
 
@@ -345,16 +377,19 @@ public class CyfRecyclerView extends RecyclerView {
         dir.delete();// 删除目录本身
     }
 
+    // 自动优化，在listView中（有待优化）
     @Override
     public void onScrolled(int dx, int dy) {
-        if(grapeGridAdapter !=null){
+        if (absListView == null && grapeGridAdapter != null) {
             grapeGridAdapter.setShow(false);
+            Glide.with(this).pauseRequests();
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     grapeGridAdapter.setShow(true);
+                    Glide.with(CyfRecyclerView.this).resumeRequests();
                 }
-            },1000);
+            }, 500);
         }
         super.onScrolled(dx, dy);
     }

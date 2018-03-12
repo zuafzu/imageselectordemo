@@ -104,7 +104,7 @@ public class SDCardImageLoader {
 //        }
         GlideApp.with(context).load(path).
                 apply(new RequestOptions().error(R.mipmap.ic_default_img).
-                        fitCenter().encodeQuality(50)).thumbnail(0.1f).transition(new DrawableTransitionOptions().
+                        fitCenter().encodeQuality(1)).thumbnail(0.1f).transition(new DrawableTransitionOptions().
                         crossFade(200)).into(piv);
     }
 

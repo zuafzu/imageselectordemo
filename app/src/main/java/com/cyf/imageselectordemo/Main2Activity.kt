@@ -103,26 +103,17 @@ class Main2Activity : AppCompatActivity() {
 
         listView.adapter = object : BaseAdapter() {
             override fun getView(p0: Int, p1: View?, p2: ViewGroup?): View? {
-                // 声明内部类
                 var util: Util?
                 var view: View? = p1
-                /**
-                 * 根据listView工作原理，列表项的个数只创建屏幕第一次显示的个数。
-                 * 之后就不会再创建列表项xml文件的对象，以及xml内部的组件，优化内存，性能效率
-                 */
                 if (p1 == null) {
                     util = Util()
-                    // 给xml布局文件创建java对象
                     val inflater = LayoutInflater.from(this@Main2Activity)
-                    view = inflater.inflate(R.layout.item_main2, null)
-                    // 指向布局文件内部组件
-                    util.recyclerView = view.findViewById(R.id.recyclerView)
-                    // 增加额外变量
+                    view = inflater.inflate(R.layout.item_main2, p2, false)
+                    util.recyclerView = view!!.findViewById(R.id.recyclerView)
                     view.tag = util
                 } else {
                     util = p1.tag as Util?
                 }
-                // 查看
                 val config = PhotoConfigure()
                 config.type = PhotoConfigure.WatchImg
                 config.list = list[p0]
