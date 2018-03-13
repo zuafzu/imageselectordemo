@@ -2,12 +2,14 @@ package com.cyf.cyfimageselector.utils;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.drawable.ColorDrawable;
 import android.media.ExifInterface;
 import android.widget.ImageView;
 
+import com.bumptech.glide.load.DecodeFormat;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
-import com.bumptech.glide.request.RequestOptions;
 import com.cyf.cyfimageselector.GlideApp;
 import com.cyf.cyfimageselector.R;
 
@@ -83,9 +85,9 @@ public class SDCardImageLoader {
 //                    into(piv);
 //        }
         GlideApp.with(context).load(path).
-                apply(new RequestOptions().error(R.mipmap.ic_default_img).
-                        fitCenter().encodeQuality(50)).thumbnail(0.1f).transition(new DrawableTransitionOptions().
-                crossFade(200)).into(piv);
+                error(new ColorDrawable(Color.GRAY)).placeholder(null).fallback(null).
+                fitCenter().encodeQuality(85).thumbnail(0.1f).format(DecodeFormat.PREFER_ARGB_8888).
+                transition(new DrawableTransitionOptions().crossFade(200)).into(piv);
     }
 
     public static void setImgThumbnail(Context context, String path, ImageView piv) {
@@ -103,9 +105,9 @@ public class SDCardImageLoader {
 //                    thumbnail(0.1f).into(piv);
 //        }
         GlideApp.with(context).load(path).
-                apply(new RequestOptions().error(R.mipmap.ic_default_img).
-                        fitCenter().encodeQuality(1)).thumbnail(0.1f).transition(new DrawableTransitionOptions().
-                        crossFade(200)).into(piv);
+                error(new ColorDrawable(Color.GRAY)).placeholder(R.mipmap.ic_default_img).fallback(new ColorDrawable(Color.GRAY)).
+                fitCenter().encodeQuality(60).thumbnail(0.1f).format(DecodeFormat.PREFER_ARGB_8888).
+                transition(new DrawableTransitionOptions().crossFade(200)).into(piv);
     }
 
 }

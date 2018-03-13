@@ -567,10 +567,13 @@ public class PhotoWallActivity2 extends PhotoBaseActivity {
                 // ---------特俗处理三星手机---------
                 if ("samsung".equals(SDCardImageLoader.getDeviceBrand())) {
                     if (SDCardImageLoader.readPictureDegree(mUri.getPath()) != 0) {
-                        Bitmap bitmap = BitmapFactory.decodeFile(mUri.getPath());
-                        saveBitmapFile(SDCardImageLoader.
-                                toturn(bitmap,
-                                        SDCardImageLoader.readPictureDegree(mUri.getPath())), mUri.getPath());
+                        Bitmap bitmap = SDCardImageLoader.toturn(BitmapFactory.decodeFile(mUri.getPath()),
+                                SDCardImageLoader.readPictureDegree(mUri.getPath()));
+                        saveBitmapFile(bitmap, mUri.getPath());
+                        // 防止内存溢出
+                        bitmap.recycle();
+                        bitmap = null;
+                        System.gc();
                     }
                 }
                 // --------------------------------

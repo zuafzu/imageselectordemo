@@ -120,7 +120,7 @@ class Main2Activity : AppCompatActivity() {
                 config.colnum = 3
                 config.isClick = true
                 config.isSave = false
-                util!!.recyclerView!!.show(config)
+                util!!.recyclerView!!.setAbsListView(listView).show(config)
                 return view!!
             }
 
