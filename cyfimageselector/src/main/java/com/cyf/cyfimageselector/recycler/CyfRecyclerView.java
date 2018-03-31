@@ -387,7 +387,9 @@ public class CyfRecyclerView extends RecyclerView {
                 @Override
                 public void run() {
                     grapeGridAdapter.setShow(true);
-                    Glide.with(CyfRecyclerView.this).resumeRequests();
+                    if (getContext() != null) {
+                        Glide.with(CyfRecyclerView.this).resumeRequests();
+                    }
                 }
             }, 500);
         }

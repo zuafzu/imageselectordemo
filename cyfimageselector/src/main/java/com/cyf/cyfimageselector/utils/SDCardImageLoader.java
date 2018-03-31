@@ -86,7 +86,7 @@ public class SDCardImageLoader {
 //        }
         GlideApp.with(context).load(path).
                 error(new ColorDrawable(Color.GRAY)).placeholder(null).fallback(null).
-                fitCenter().encodeQuality(85).thumbnail(0.1f).format(DecodeFormat.PREFER_ARGB_8888).
+                fitCenter().encodeQuality(100).thumbnail(0.1f).format(DecodeFormat.PREFER_ARGB_8888).
                 transition(new DrawableTransitionOptions().crossFade(200)).into(piv);
     }
 
@@ -106,7 +106,7 @@ public class SDCardImageLoader {
 //        }
         GlideApp.with(context).load(path).
                 error(new ColorDrawable(Color.GRAY)).placeholder(R.mipmap.ic_default_img).fallback(new ColorDrawable(Color.GRAY)).
-                fitCenter().encodeQuality(60).thumbnail(0.1f).format(DecodeFormat.PREFER_ARGB_8888).
+                encodeQuality(60).thumbnail(0.1f).format(DecodeFormat.PREFER_ARGB_8888).
                 transition(new DrawableTransitionOptions().crossFade(200)).into(piv);
     }
 
