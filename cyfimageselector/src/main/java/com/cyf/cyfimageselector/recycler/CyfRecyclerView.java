@@ -253,7 +253,7 @@ public class CyfRecyclerView extends RecyclerView {
         recycledViewPool = null;
         isOriginalShow = false;
         isOriginalDrawing = true;
-        if (photoConfigure.isAutoDelThm()) {
+        if (photoConfigure != null && photoConfigure.isAutoDelThm()) {
             clearThumbnailsList();
         }
     }
