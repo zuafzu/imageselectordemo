@@ -53,6 +53,8 @@ public class PhotoPreviewActivity extends PhotoBaseActivity {
     private static final String intent_list2 = "list2";
     private static final String intent_type = "type";
 
+    public static ArrayList<String> imagePathListCache;
+
     public static OnHanlderResultCallback callback;
 
     private TextView tv_toolsbar_title;
@@ -91,10 +93,10 @@ public class PhotoPreviewActivity extends PhotoBaseActivity {
     // 跳转到该界面2
     public static void openPhotoPreview(Activity activity, int index, int num, int type, ArrayList<String> imagePathList, ArrayList<String> selectImagePathList, OnHanlderResultCallback callback) {
         PhotoPreviewActivity.callback = callback;
+        PhotoPreviewActivity.imagePathListCache = imagePathList;
         Intent intent = new Intent(activity, PhotoPreviewActivity.class);
         intent.putExtra(PhotoPreviewActivity.intent_index, index);
         intent.putStringArrayListExtra(PhotoPreviewActivity.intent_list2, selectImagePathList);
-        intent.putStringArrayListExtra(PhotoPreviewActivity.intent_list, imagePathList);
         intent.putExtra(PhotoPreviewActivity.intent_num, num);
         intent.putExtra(PhotoPreviewActivity.intent_type, type);
         activity.startActivityForResult(intent, 0);
@@ -109,7 +111,11 @@ public class PhotoPreviewActivity extends PhotoBaseActivity {
             getActionBar().hide();
         }
         selectedList = new ArrayList<>();
-        stringList = getIntent().getStringArrayListExtra(intent_list);
+        if (getIntent().hasExtra(intent_list)) {
+            stringList = getIntent().getStringArrayListExtra(intent_list);
+        } else {
+            stringList = PhotoPreviewActivity.imagePathListCache;
+        }
         selectedList.addAll(stringList);
         index = getIntent().getIntExtra(intent_index, 0);
         type = getIntent().getIntExtra(intent_type, 0);
