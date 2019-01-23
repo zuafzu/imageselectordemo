@@ -9,6 +9,9 @@ import android.widget.RelativeLayout;
  * Created by hanj on 14-10-15.
  */
 public class SquareRelativeLayout extends RelativeLayout {
+
+    private int h_w = 1;
+
     public SquareRelativeLayout(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
     }
@@ -34,7 +37,12 @@ public class SquareRelativeLayout extends RelativeLayout {
         int childWidthSize = getMeasuredWidth();
         //高度和宽度一样
         widthMeasureSpec = MeasureSpec.makeMeasureSpec(childWidthSize, MeasureSpec.EXACTLY);
-        heightMeasureSpec = widthMeasureSpec;
+        heightMeasureSpec = widthMeasureSpec * h_w;
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+    }
+
+    public void setMeasure(int i) {
+        h_w = i;
+        invalidate();
     }
 }

@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import com.cyf.cyfimageselector.R;
+import com.cyf.cyfimageselector.customviews.SquareRelativeLayout;
 import com.cyf.cyfimageselector.model.PhotoConfigure;
 import com.cyf.cyfimageselector.ui.PhotoPreviewActivity;
 import com.cyf.cyfimageselector.ui.PhotoWallActivity2;
@@ -81,6 +82,7 @@ public class PostArticleImgAdapter extends RecyclerView.Adapter<PostArticleImgAd
     public void onBindViewHolder(final MyViewHolder holder, final int position) {
         holder.view_top.setVisibility(View.GONE);
         holder.photo_wall_item_cb.setVisibility(View.GONE);
+        holder.srl.setMeasure(photoConfigure.getH_w());
         if (photoConfigure.getType() == PhotoConfigure.WatchImg) {
             SDCardImageLoader.setImgThumbnail(mContext, photoConfigure.getList().get(holder.getAdapterPosition()), ((ImageView) holder.photo_wall_item_photo));
             holder.photo_wall_item_photo.setOnClickListener(new View.OnClickListener() {
@@ -193,6 +195,7 @@ public class PostArticleImgAdapter extends RecyclerView.Adapter<PostArticleImgAd
 
     public static class MyViewHolder extends RecyclerView.ViewHolder {
 
+        SquareRelativeLayout srl;
         ImageView photo_wall_item_photo;
         View view_top;
         AppCompatCheckBox photo_wall_item_cb;
@@ -200,6 +203,7 @@ public class PostArticleImgAdapter extends RecyclerView.Adapter<PostArticleImgAd
 
         public MyViewHolder(View itemView) {
             super(itemView);
+            srl = itemView.findViewById(R.id.srl);
             photo_wall_item_photo = itemView.findViewById(R.id.photo_wall_item_photo);
             view_top = itemView.findViewById(R.id.view_top);
             photo_wall_item_cb = itemView.findViewById(R.id.photo_wall_item_cb);

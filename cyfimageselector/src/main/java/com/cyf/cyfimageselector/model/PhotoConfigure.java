@@ -30,6 +30,8 @@ public class PhotoConfigure implements Serializable {
     private boolean isAutoDelThm = true;// 是否自动删除生成的缩略图，针对编辑添加有效
     private boolean isOriginalShow = false;// 判断原始图开关是否显示，针对编辑添加有效
 
+    private int h_w = 1;//item展示高宽比（默认是正方形1：1）
+
     public PhotoConfigure() {
         super();
     }
@@ -94,6 +96,10 @@ public class PhotoConfigure implements Serializable {
         return isOriginalShow;
     }
 
+    public int getH_w() {
+        return h_w;
+    }
+
     public PhotoConfigure setType(int type) {
         this.type = type;
         return this;
@@ -156,6 +162,11 @@ public class PhotoConfigure implements Serializable {
 
     public PhotoConfigure setOriginalShow(boolean originalShow) {
         isOriginalShow = originalShow;
+        return this;
+    }
+
+    public PhotoConfigure setH_w(int h_w) {
+        this.h_w = h_w;
         return this;
     }
 

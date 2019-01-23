@@ -9,38 +9,37 @@ import android.widget.BaseAdapter
 import com.cyf.cyfimageselector.model.PhotoConfigure
 import com.cyf.cyfimageselector.recycler.CyfRecyclerView
 import kotlinx.android.synthetic.main.activity_main2.*
-import java.util.*
 
 
 class Main2Activity : AppCompatActivity() {
 
     private var list1: ArrayList<String> = arrayListOf(
-            "https://ss0.baidu.com/6ONWsjip0QIZ8tyhnq/it/u=900872169,3830952677&fm=58&u_exp_0=333838554,3497647267&fm_exp_0=86&bpow=1000&bpoh=1503",
+            "https://ss0.baidu.com/6ONWsjip0QIZ8tyhnq/it/u=900872169,3830952677&fm=58&u_exp_0=333838554,3497647267&fm_exp_0=86&bpow=1000&bpoh=1503"/*,
             "https://ss3.bdstatic.com/70cFv8Sh_Q1YnxGkpoWK1HF6hhy/it/u=96212569,1396500668&fm=27&gp=0.jpg",
             "https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=1378813371,2481804374&fm=27&gp=0.jpg",
             "https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=3185590630,690458775&fm=27&gp=0.jpg",
-            "https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=414620367,1705416437&fm=27&gp=0.jpg")
+            "https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=414620367,1705416437&fm=27&gp=0.jpg"*/)
 
     private var list2: ArrayList<String> = arrayListOf(
             "https://ss2.baidu.com/6ONYsjip0QIZ8tyhnq/it/u=3587085728,2856235770&fm=58&s=0112C432D6D3F99248CC4BC40300A0A6&bpow=121&bpoh=75",
-            "https://ss0.baidu.com/73t1bjeh1BF3odCf/it/u=1145580389,1901929664&fm=85&s=6CCA7A234ED323F71DA99486010080A1",
+            "https://ss0.baidu.com/73t1bjeh1BF3odCf/it/u=1145580389,1901929664&fm=85&s=6CCA7A234ED323F71DA99486010080A1"/*,
             "https://ss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=3079751641,4091754669&fm=27&gp=0.jpg",
             "https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=3667916039,4286076556&fm=27&gp=0.jpg",
-            "https://ss3.bdstatic.com/70cFv8Sh_Q1YnxGkpoWK1HF6hhy/it/u=3848053080,1301187151&fm=27&gp=0.jpg")
+            "https://ss3.bdstatic.com/70cFv8Sh_Q1YnxGkpoWK1HF6hhy/it/u=3848053080,1301187151&fm=27&gp=0.jpg"*/)
 
     private var list3: ArrayList<String> = arrayListOf(
             "https://ss1.baidu.com/70cFfyinKgQFm2e88IuM_a/forum/pic/item/aa64034f78f0f736a4a890f80955b319eac413f0.jpg",
             "https://ss0.baidu.com/73t1bjeh1BF3odCf/it/u=912466544,1453991696&fm=85&s=991123D7465109C6668DF11C03001093",
-            "https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=1687301639,2264795042&fm=27&gp=0.jpg",
+            "https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=1687301639,2264795042&fm=27&gp=0.jpg"/*,
             "https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=2657922881,3945635140&fm=27&gp=0.jpg",
-            "https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=1915522848,2815251119&fm=27&gp=0.jpg")
+            "https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=1915522848,2815251119&fm=27&gp=0.jpg"*/)
 
     private var list4: ArrayList<String> = arrayListOf(
             "https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=2544833880,2682850620&fm=27&gp=0.jpg",
             "https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=1617850048,3783354623&fm=27&gp=0.jpg",
             "https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=2224925339,2344700343&fm=27&gp=0.jpg",
-            "https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=3636840918,3896845764&fm=27&gp=0.jpg",
-            "https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=990852493,2848050334&fm=27&gp=0.jpg")
+            "https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=3636840918,3896845764&fm=27&gp=0.jpg"/*,
+            "https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=990852493,2848050334&fm=27&gp=0.jpg"*/)
 
     private var list5: ArrayList<String> = arrayListOf(
             "https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=1473318516,731613934&fm=27&gp=0.jpg",
@@ -77,12 +76,12 @@ class Main2Activity : AppCompatActivity() {
             "https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=121356268,4149522453&fm=27&gp=0.jpg",
             "https://ss3.bdstatic.com/70cFv8Sh_Q1YnxGkpoWK1HF6hhy/it/u=1862596237,3151368312&fm=27&gp=0.jpg")
 
-    private var list10: ArrayList<String> = arrayListOf(
+    private var list10: ArrayList<String> = arrayListOf(/*
             "https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=2037045432,2358613019&fm=27&gp=0.jpg",
             "https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=76137054,4105283605&fm=27&gp=0.jpg",
             "https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=1998935427,322473980&fm=27&gp=0.jpg",
             "https://ss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=4084642221,1440360043&fm=27&gp=0.jpg",
-            "https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=2539765007,382507019&fm=27&gp=0.jpg")
+            "https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=2539765007,382507019&fm=27&gp=0.jpg"*/)
 
     private var list = ArrayList<ArrayList<String>>()
 
@@ -116,8 +115,29 @@ class Main2Activity : AppCompatActivity() {
                 }
                 val config = PhotoConfigure()
                 config.type = PhotoConfigure.WatchImg
-                config.list = list[p0]
-                config.colnum = 3
+                // --------------test--------------
+                // 最多显示4张图片
+                if (list[p0].size > 4) {
+                    config.list = ArrayList(list[p0].subList(0, 4))
+                } else {
+                    config.list = list[p0]
+                }
+                // 1张照片的时候一行显示1张
+                // 超过1张每行显示2张
+                // 只有2张的时候每张显示高宽比为2的矩形
+                // 其它张数的时候显示高宽比为1的正方形
+                if (list[p0].size == 1) {
+                    config.colnum = 1
+                    config.h_w = 1
+                } else {
+                    config.colnum = 2
+                    if (list[p0].size == 2) {
+                        config.h_w = 2
+                    } else {
+                        config.h_w = 1
+                    }
+                }
+                // --------------test end--------------
                 config.isClick = true
                 config.isSave = false
                 util!!.recyclerView!!.setAbsListView(listView).show(config)
