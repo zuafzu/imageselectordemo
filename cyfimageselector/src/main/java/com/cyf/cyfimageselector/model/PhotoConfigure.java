@@ -31,6 +31,7 @@ public class PhotoConfigure implements Serializable {
     private boolean isOriginalShow = false;// 判断原始图开关是否显示，针对编辑添加有效
 
     private int h_w = 1;//item展示高宽比（默认是正方形1：1）
+    private int maxSeeNum = -1;// 最多可展示图片数量（朋友圈模式显示和实际图片数量不一致时使用，小于0则有多少张显示多少张）
 
     public PhotoConfigure() {
         super();
@@ -98,6 +99,10 @@ public class PhotoConfigure implements Serializable {
 
     public int getH_w() {
         return h_w;
+    }
+
+    public int getMaxSeeNum() {
+        return maxSeeNum;
     }
 
     public PhotoConfigure setType(int type) {
@@ -170,6 +175,11 @@ public class PhotoConfigure implements Serializable {
         return this;
     }
 
+    public PhotoConfigure setMaxSeeNum(int maxSeeNum) {
+        this.maxSeeNum = maxSeeNum;
+        return this;
+    }
+
     @Override
     public String toString() {
         return "PhotoConfigure{" +
@@ -186,6 +196,8 @@ public class PhotoConfigure implements Serializable {
                 ", isCanDrag=" + isCanDrag +
                 ", isAutoDelThm=" + isAutoDelThm +
                 ", isOriginalShow=" + isOriginalShow +
+                ", h_w=" + h_w +
+                ", maxSeeNum=" + maxSeeNum +
                 '}';
     }
 }

@@ -1,11 +1,13 @@
 package com.cyf.imageselectordemo
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
+import android.widget.TextView
 import com.cyf.cyfimageselector.model.PhotoConfigure
 import com.cyf.cyfimageselector.recycler.CyfRecyclerView
 import kotlinx.android.synthetic.main.activity_main2.*
@@ -49,7 +51,6 @@ class Main2Activity : AppCompatActivity() {
             "https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=3058818465,1029820612&fm=27&gp=0.jpg")
 
     private var list6: ArrayList<String> = arrayListOf(
-            "https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=2918403984,2305096680&fm=11&gp=0.jpg",
             "https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=4115613474,580765086&fm=27&gp=0.jpg",
             "https://ss3.bdstatic.com/70cFv8Sh_Q1YnxGkpoWK1HF6hhy/it/u=3908937358,2901422607&fm=27&gp=0.jpg",
             "https://ss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=668589441,621027411&fm=27&gp=0.jpg",
@@ -89,18 +90,21 @@ class Main2Activity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main2)
 
-        list.add(list1)
-        list.add(list2)
-        list.add(list3)
-        list.add(list4)
-        list.add(list5)
-        list.add(list6)
-        list.add(list7)
-        list.add(list8)
-        list.add(list9)
-        list.add(list10)
+        for(i in 0 until 5){
+            list.add(list1)
+            list.add(list2)
+            list.add(list3)
+            list.add(list4)
+            list.add(list5)
+            list.add(list6)
+            list.add(list7)
+            list.add(list8)
+            list.add(list9)
+            list.add(list10)
+        }
 
         listView.adapter = object : BaseAdapter() {
+            @SuppressLint("SetTextI18n")
             override fun getView(p0: Int, p1: View?, p2: ViewGroup?): View? {
                 var util: Util?
                 var view: View? = p1
@@ -109,19 +113,16 @@ class Main2Activity : AppCompatActivity() {
                     val inflater = LayoutInflater.from(this@Main2Activity)
                     view = inflater.inflate(R.layout.item_main2, p2, false)
                     util.recyclerView = view!!.findViewById(R.id.recyclerView)
+                    util.textView = view!!.findViewById(R.id.textView)
                     view.tag = util
                 } else {
                     util = p1.tag as Util?
                 }
                 val config = PhotoConfigure()
                 config.type = PhotoConfigure.WatchImg
-                // --------------test--------------
                 // 最多显示4张图片
-                if (list[p0].size > 4) {
-                    config.list = ArrayList(list[p0].subList(0, 4))
-                } else {
-                    config.list = list[p0]
-                }
+                config.maxSeeNum = 4
+                config.list = list[p0]
                 // 1张照片的时候一行显示1张
                 // 超过1张每行显示2张
                 // 只有2张的时候每张显示高宽比为2的矩形
@@ -137,10 +138,10 @@ class Main2Activity : AppCompatActivity() {
                         config.h_w = 1
                     }
                 }
-                // --------------test end--------------
                 config.isClick = true
                 config.isSave = false
                 util!!.recyclerView!!.setAbsListView(listView).show(config)
+                util.textView!!.text = "本条实际共" + list[p0].size + "张图片"
                 return view!!
             }
 
@@ -166,6 +167,7 @@ class Main2Activity : AppCompatActivity() {
      */
     internal inner class Util {
         var recyclerView: CyfRecyclerView? = null
+        var textView: TextView? = null
     }
 
 }

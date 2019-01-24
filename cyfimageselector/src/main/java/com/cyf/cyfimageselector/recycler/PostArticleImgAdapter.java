@@ -31,16 +31,11 @@ public class PostArticleImgAdapter extends RecyclerView.Adapter<PostArticleImgAd
     private LayoutInflater mLayoutInflater;
 
     private int type = 0;// 0带保存按钮，3不带保存按钮
-    private boolean isShow = true;// 是否加载无缓存的图片
 
     public void setClick(boolean isClick) {
         if (photoConfigure != null) {
             photoConfigure.setClick(isClick);
         }
-    }
-
-    public void setShow(boolean show) {
-        isShow = show;
     }
 
     public Context getmContext() {
@@ -84,24 +79,28 @@ public class PostArticleImgAdapter extends RecyclerView.Adapter<PostArticleImgAd
         holder.photo_wall_item_cb.setVisibility(View.GONE);
         holder.srl.setMeasure(photoConfigure.getH_w());
         if (photoConfigure.getType() == PhotoConfigure.WatchImg) {
-            SDCardImageLoader.setImgThumbnail(mContext, photoConfigure.getList().get(holder.getAdapterPosition()), ((ImageView) holder.photo_wall_item_photo));
-            holder.photo_wall_item_photo.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if (photoConfigure.isClick()) {
-                        if (cyfRecyclerView.getListener() != null) {
-                            cyfRecyclerView.getListener().onClick(holder.getAdapterPosition());
-                        } else {
-                            PhotoPreviewActivity.openPhotoPreview((Activity) mContext, holder.getAdapterPosition(), photoConfigure.getList().size(), type, (ArrayList<String>) photoConfigure.getList(), new PhotoPreviewActivity.OnHanlderResultCallback() {
-                                @Override
-                                public void onHanlderSuccess(List<String> resultList) {
+            if (CyfRecyclerView.isShow) {
+                SDCardImageLoader.setImgThumbnail(mContext, photoConfigure.getList().get(holder.getAdapterPosition()), ((ImageView) holder.photo_wall_item_photo));
+                holder.photo_wall_item_photo.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if (photoConfigure.isClick()) {
+                            if (cyfRecyclerView.getListener() != null) {
+                                cyfRecyclerView.getListener().onClick(holder.getAdapterPosition());
+                            } else {
+                                PhotoPreviewActivity.openPhotoPreview((Activity) mContext, holder.getAdapterPosition(), photoConfigure.getList().size(), type, (ArrayList<String>) photoConfigure.getList(), new PhotoPreviewActivity.OnHanlderResultCallback() {
+                                    @Override
+                                    public void onHanlderSuccess(List<String> resultList) {
 
-                                }
-                            });
+                                    }
+                                });
+                            }
                         }
                     }
-                }
-            });
+                });
+            } else {
+                holder.photo_wall_item_photo.setImageResource(R.mipmap.ic_default_img);
+            }
         } else {
             if (photoConfigure.getList().get(holder.getAdapterPosition()).equals("add")) {
                 ((View) holder.photo_wall_item_photo.getParent()).setTag(R.string.app_name, "add");
@@ -175,7 +174,13 @@ public class PostArticleImgAdapter extends RecyclerView.Adapter<PostArticleImgAd
 
     @Override
     public int getItemCount() {
-        return photoConfigure.getList() == null ? 0 : photoConfigure.getList().size();
+        int count;
+        if (photoConfigure.getMaxSeeNum() < 0 || photoConfigure.getList().size() < photoConfigure.getMaxSeeNum()) {
+            count = photoConfigure.getList() == null ? 0 : photoConfigure.getList().size();
+        } else {
+            count = photoConfigure.getMaxSeeNum();
+        }
+        return count;
     }
 
 

@@ -11,9 +11,11 @@ import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.ViewConfiguration;
 import android.widget.AbsListView;
+import android.widget.BaseAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,7 +36,7 @@ import top.zibin.luban.OnCompressListener;
 
 public class CyfRecyclerView extends RecyclerView {
 
-    private boolean isShow = true;// 是否加载无缓存的图片
+    public static boolean isShow = true;// 是否加载无缓存的图片
     private AbsListView absListView;// 优化在listView中的滑动
 
     private PhotoConfigure photoConfigure;
@@ -86,27 +88,82 @@ public class CyfRecyclerView extends RecyclerView {
         return this;
     }
 
-    // 主动优化，在listView中（有待优化）
+    private static int oldFirstVisibleItem = 0;
+    private static long oldTime = 0;
+
+    // 主动优化，在listView中
     public CyfRecyclerView setAbsListView(AbsListView listView) {
         this.absListView = listView;
         if (this.absListView != null) {
-            this.absListView.setFriction(ViewConfiguration.getScrollFriction() * 2);
+            this.absListView.setFriction(ViewConfiguration.getScrollFriction() * 1.5f);//滑动摩擦阻力
             this.absListView.setOnScrollListener(new AbsListView.OnScrollListener() {
+
                 @Override
                 public void onScrollStateChanged(AbsListView absListView, int i) {
-                    if (i == SCROLL_STATE_FLING) {
-                        isShow = false;
-                        Glide.with(CyfRecyclerView.this).pauseRequests();
-                    } else {
+                    // 不卡顿，但是停止滑动后显示图片
+//                    try {
+//                        if (i == SCROLL_STATE_FLING) {
+//                            isShow = false;
+//                            if (getContext() != null) {
+//                                Glide.with(getContext()).pauseRequests();
+//                            }
+//                        } else if (i == SCROLL_STATE_TOUCH_SCROLL) {
+////                            isShow = true;
+////                            if (getContext() != null) {
+////                                Glide.with(getContext()).resumeRequests();
+////                            }
+////                            ((BaseAdapter) absListView.getAdapter()).notifyDataSetChanged();
+//                        } else if (i == SCROLL_STATE_IDLE) {
+//                            isShow = true;
+//                            if (getContext() != null) {
+//                                Glide.with(getContext()).resumeRequests();
+//                            }
+//                            ((BaseAdapter) absListView.getAdapter()).notifyDataSetChanged();
+//                        }
+//                    } catch (Exception e) {
+//
+//                    }
+                    // 卡顿，但是一直显示图片
+//                    isShow = true;
+//                    if (getContext() != null) {
+//                        Glide.with(getContext()).resumeRequests();
+//                    }
+                    // 配合onScroll方法
+                    if (i == SCROLL_STATE_TOUCH_SCROLL) {
+                        if (oldTime == 0) {
+                            oldTime = System.currentTimeMillis();
+                            isShow = false;
+                            if (getContext() != null) {
+                                Glide.with(getContext()).pauseRequests();
+                            }
+                            Log.e("cyf111", "滑动开始");
+                        }
+                    } else if (i == SCROLL_STATE_IDLE) {
+                        Log.e("cyf111", "滑动停止");
+                        // oldTime = 0;
                         isShow = true;
-                        Glide.with(CyfRecyclerView.this).resumeRequests();
+                        if (getContext() != null) {
+                            Glide.with(getContext()).resumeRequests();
+                        }
+                        ((BaseAdapter) absListView.getAdapter()).notifyDataSetChanged();
                     }
-                    grapeGridAdapter.setShow(isShow);
                 }
 
                 @Override
-                public void onScroll(AbsListView absListView, int i, int i1, int i2) {
-
+                public void onScroll(AbsListView absListView, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                    if (oldTime > 0 && System.currentTimeMillis() - oldTime >= 300) {
+                        oldTime = System.currentTimeMillis();
+                        if (oldFirstVisibleItem == firstVisibleItem) {
+                            isShow = true;
+                            if (getContext() != null) {
+                                Glide.with(getContext()).resumeRequests();
+                            }
+                            ((BaseAdapter) absListView.getAdapter()).notifyDataSetChanged();
+                            oldTime = 0;
+                        } else {
+                            oldFirstVisibleItem = firstVisibleItem;
+                        }
+                    }
                 }
             });
         }
@@ -381,12 +438,12 @@ public class CyfRecyclerView extends RecyclerView {
     @Override
     public void onScrolled(int dx, int dy) {
         if (absListView == null && grapeGridAdapter != null) {
-            grapeGridAdapter.setShow(false);
+            isShow = false;
             Glide.with(this).pauseRequests();
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    grapeGridAdapter.setShow(true);
+                    isShow = true;
                     if (getContext() != null) {
                         Glide.with(CyfRecyclerView.this).resumeRequests();
                     }
