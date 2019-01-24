@@ -16,6 +16,9 @@ import android.view.Gravity;
 import android.view.ViewConfiguration;
 import android.widget.AbsListView;
 import android.widget.BaseAdapter;
+import android.widget.BaseExpandableListAdapter;
+import android.widget.ExpandableListView;
+import android.widget.HeaderViewListAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -100,8 +103,8 @@ public class CyfRecyclerView extends RecyclerView {
 
                 @Override
                 public void onScrollStateChanged(AbsListView absListView, int i) {
-                    // 不卡顿，但是停止滑动后显示图片
-//                    try {
+                    try {
+                        // 不卡顿，但是停止滑动后显示图片
 //                        if (i == SCROLL_STATE_FLING) {
 //                            isShow = false;
 //                            if (getContext() != null) {
@@ -120,49 +123,92 @@ public class CyfRecyclerView extends RecyclerView {
 //                            }
 //                            ((BaseAdapter) absListView.getAdapter()).notifyDataSetChanged();
 //                        }
-//                    } catch (Exception e) {
-//
-//                    }
-                    // 卡顿，但是一直显示图片
+                        // 卡顿，但是一直显示图片
 //                    isShow = true;
 //                    if (getContext() != null) {
 //                        Glide.with(getContext()).resumeRequests();
 //                    }
-                    // 配合onScroll方法
-                    if (i == SCROLL_STATE_TOUCH_SCROLL) {
-                        if (oldTime == 0) {
-                            oldTime = System.currentTimeMillis();
-                            isShow = false;
-                            if (getContext() != null) {
-                                Glide.with(getContext()).pauseRequests();
+                        // 配合onScroll方法
+                        if (i == SCROLL_STATE_TOUCH_SCROLL) {
+                            if (oldTime == 0) {
+                                oldTime = System.currentTimeMillis();
+                                isShow = false;
+                                if (getContext() != null) {
+                                    Glide.with(getContext()).pauseRequests();
+                                }
+                                Log.e("cyf111", "滑动开始");
                             }
-                            Log.e("cyf111", "滑动开始");
+                        } else if (i == SCROLL_STATE_IDLE) {
+                            Log.e("cyf111", "滑动停止");
+                            // oldTime = 0;
+                            isShow = true;
+                            if (getContext() != null) {
+                                Glide.with(getContext()).resumeRequests();
+                            }
+                            if (absListView instanceof ExpandableListView) {
+                                // 折叠ListView
+                                ((BaseExpandableListAdapter) ((ExpandableListView) absListView).getExpandableListAdapter()).notifyDataSetChanged();
+                                int num = ((ExpandableListView) absListView).getExpandableListAdapter().getGroupCount();
+                                for (int j = 0; j < num; j++) {
+                                    if (((ExpandableListView) absListView).isGroupExpanded(j)) {
+                                        ((ExpandableListView) absListView).collapseGroup(j);
+                                        ((ExpandableListView) absListView).expandGroup(j);
+                                    }
+                                }
+                            } else {
+                                // 普通ListView
+                                if (absListView.getAdapter() instanceof HeaderViewListAdapter) {
+                                    // 带头（下拉刷新的ListView）
+                                    ((BaseAdapter) ((HeaderViewListAdapter) absListView.getAdapter()).getWrappedAdapter()).notifyDataSetChanged();
+                                } else {
+                                    // 普通（ListView）
+                                    ((BaseAdapter) absListView.getAdapter()).notifyDataSetChanged();
+                                }
+                            }
                         }
-                    } else if (i == SCROLL_STATE_IDLE) {
-                        Log.e("cyf111", "滑动停止");
-                        // oldTime = 0;
-                        isShow = true;
-                        if (getContext() != null) {
-                            Glide.with(getContext()).resumeRequests();
-                        }
-                        ((BaseAdapter) absListView.getAdapter()).notifyDataSetChanged();
+                    } catch (Exception e) {
+                        Log.e("cyf111", "Exception ： " + e.getMessage());
                     }
                 }
 
                 @Override
                 public void onScroll(AbsListView absListView, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                    if (oldTime > 0 && System.currentTimeMillis() - oldTime >= 300) {
-                        oldTime = System.currentTimeMillis();
-                        if (oldFirstVisibleItem == firstVisibleItem) {
-                            isShow = true;
-                            if (getContext() != null) {
-                                Glide.with(getContext()).resumeRequests();
+                    try {
+                        if (oldTime > 0 && System.currentTimeMillis() - oldTime >= 300) {
+                            oldTime = System.currentTimeMillis();
+                            if (oldFirstVisibleItem == firstVisibleItem) {
+                                isShow = true;
+                                if (getContext() != null) {
+                                    Glide.with(getContext()).resumeRequests();
+                                }
+                                if (absListView instanceof ExpandableListView) {
+                                    // 折叠ListView
+                                    ((BaseExpandableListAdapter) ((ExpandableListView) absListView).getExpandableListAdapter()).notifyDataSetChanged();
+                                    // 防止滑动中不断打开关闭影响流畅度（没测试过）
+//                                    int num = ((ExpandableListView) absListView).getExpandableListAdapter().getGroupCount();
+//                                    for (int j = 0; j < num; j++) {
+//                                        if (((ExpandableListView) absListView).isGroupExpanded(j)) {
+//                                            ((ExpandableListView) absListView).collapseGroup(j);
+//                                            ((ExpandableListView) absListView).expandGroup(j);
+//                                        }
+//                                    }
+                                } else {
+                                    // 普通ListView
+                                    if (absListView.getAdapter() instanceof HeaderViewListAdapter) {
+                                        // 带头（下拉刷新的ListView）
+                                        ((BaseAdapter) ((HeaderViewListAdapter) absListView.getAdapter()).getWrappedAdapter()).notifyDataSetChanged();
+                                    } else {
+                                        // 普通（ListView）
+                                        ((BaseAdapter) absListView.getAdapter()).notifyDataSetChanged();
+                                    }
+                                }
+                                oldTime = 0;
+                            } else {
+                                oldFirstVisibleItem = firstVisibleItem;
                             }
-                            ((BaseAdapter) absListView.getAdapter()).notifyDataSetChanged();
-                            oldTime = 0;
-                        } else {
-                            oldFirstVisibleItem = firstVisibleItem;
                         }
+                    } catch (Exception e) {
+                        Log.e("cyf111", "Exception2 ： " + e.getMessage());
                     }
                 }
             });
